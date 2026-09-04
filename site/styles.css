@@ -1,0 +1,3196 @@
+/* ============================================================
+   CALLER — a 1970s telephone exchange, reimagined as a portfolio.
+   Warm cream/ink palette, brass accent, 10px radius throughout.
+   ============================================================ */
+
+:root {
+  --cream: #F3E9D8;
+  --paper: #FDFBF6;
+  --paper-dim: #EADFC8;
+  --ink: #2B2420;
+  --ink-soft: #6B5E4F;
+  --ink-faint: #9C8D78;
+  --brass: #B8863B;
+  --brass-deep: #8F6526;
+  --rust: #A8461F;
+  --line: rgba(43, 36, 32, 0.14);
+  --line-strong: rgba(43, 36, 32, 0.28);
+  --line-on-dark: rgba(253, 251, 246, 0.16);
+  --line-on-dark-strong: rgba(253, 251, 246, 0.3);
+
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SF Mono', monospace;
+  --font-hand: 'Caveat', cursive;
+
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gutter: clamp(1.25rem, 3vw, 3rem);
+
+  --cursor-default: url("assets/icons/cursor.png") 0 0, auto;
+  --cursor-hand: url("assets/icons/cursor-hand.png") 7 0, pointer;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Restored as the loading fallback it was always meant to be (see
+   the .room__video comment below) — sits behind the canvas and is
+   instantly visible (plain <img>, no fetch+decode ceremony) for the
+   moment before that room's frame sequence has anything to draw.
+   Research into how other scroll-video sites avoid this exact gap
+   confirmed this "static fallback under the canvas" pattern is the
+   standard fix, not a rewrite of the frame-loading approach itself.
+   Hero is excluded: it already shows an always-instant poster image
+   of its own, so a photo fallback here is unnecessary. */
+.hero .room__photo {
+  display: none !important;
+}
+
+html, body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  overscroll-behavior: none;
+  cursor: var(--cursor-default);
+}
+
+body {
+  min-height: 100vh;
+  position: relative;
+  overscroll-behavior: none;
+}
+
+a { color: inherit; text-decoration: none; cursor: var(--cursor-hand); }
+button { font-family: inherit; background: none; border: 0; color: inherit; cursor: var(--cursor-hand); }
+button:disabled { cursor: default; }
+img { max-width: 100%; display: block; }
+ul, ol { list-style: none; }
+
+::selection { background: var(--brass); color: var(--paper); }
+
+/* ============================================================
+   TV FRAME — the whole site is viewed through a real photographed
+   television bezel (assets/tv/tv.webp desktop, assets/tv/phone.webp portrait).
+   The frame's screen cutout is true alpha transparency, so it
+   simply masks the .deck content sitting beneath it. The bezel
+   itself is pointer-events:none; only the controls inside it
+   re-enable pointer-events.
+   ============================================================ */
+
+/* A themed backdrop behind the frame — on a very wide or very
+   narrow viewport the frame can no longer stretch to fill it (see
+   below), so this is what shows in the leftover space instead of
+   the page's plain cream background. Keeps it feeling like "the
+   room the television sits in" rather than a broken gap. */
+.tv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%),
+    url('assets/tv/madera.webp');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.tv-frame {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  /* Always keep the real 1672:941 photo's proportions — sized to
+     the largest box that fits the viewport without cropping either
+     dimension, then centered. This is what stops it stretching on
+     ultrawide monitors or unusually shaped windows. */
+  aspect-ratio: 1672 / 941;
+  width: min(100vw, 177.68vh);
+  height: min(100vh, 56.28vw);
+  z-index: 150;
+  pointer-events: none;
+  background-image: url('assets/tv/tv.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 60px rgba(0, 0, 0, 0.55));
+}
+
+@media (orientation: portrait) {
+  .tv-frame {
+    background-image: url('assets/tv/phone.webp');
+    aspect-ratio: 941 / 1672;
+    width: min(100vw, 56.28vh);
+    width: min(100vw, 56.28dvh);
+    height: min(100vh, 177.68vw);
+    height: min(100dvh, 177.68vw);
+    max-height: 100dvh;
+    margin: auto;
+    filter: drop-shadow(0 0 35px rgba(0, 0, 0, 0.75));
+  }
+}
+
+/* ---- Corner mask fix: .tv-screen lives INSIDE .tv-frame now (so
+   both scale/center together on any viewport), which means its
+   content paints above .tv-frame's own background by normal DOM
+   stacking — the opposite of what we want. This repaints the same
+   frame art on top, clipped to just the screen's rectangle, so the
+   frame's rounded corners still cover the screen's square ones. ---- */
+
+.tv-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  background-image: url('assets/tv/tv.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  clip-path: inset(10.84% 19.02% 13.92% 7.78%);
+}
+
+@media (orientation: portrait) {
+  .tv-frame::after {
+    background-image: url('assets/tv/phone.webp');
+    clip-path: inset(4.19% 8.18% 21.29% 8.08%);
+  }
+}
+
+/* ---- The screen itself: everything the site actually shows lives
+   in here, scaled to the real transparent hole in the frame image
+   (measured directly off the pixels), not stretched full-bleed.
+   The `transform` is what matters most — it makes this the
+   containing block for any position:fixed descendant (the header,
+   the dot nav, the paginated slides), so their "fixed" positioning
+   resolves against this screen instead of the browser viewport. ---- */
+
+.tv-screen {
+  position: absolute;
+  left: 7.78%;
+  top: 10.84%;
+  width: 73.2%;
+  height: 75.24%;
+  overflow: hidden;
+  transform: translateZ(0);
+  background: var(--ink);
+  /* Contenedor de consulta: el contenido de las salas dimensiona su
+     texto contra ESTA caja (cqi/cqb), no contra la ventana (vw/vh).
+     La pantalla del TV siempre tiene la misma proporción — el marco
+     absorbe la variación de aspecto con las barras de madera — así
+     que un solo juego de tamaños sirve de móvil a 4K. */
+  container: screen / size;
+}
+
+/* CRT vignette — darkens the edges of whatever's showing (room walk
+   or channel), on top of both since it lives on the screen itself,
+   not on either layer individually. Below tv-static (200) so the
+   channel-change snow still reads as a full-screen burst. */
+.tv-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* CRT scanlines — thin, tightly-spaced, low-opacity, so it reads as
+   texture rather than a pattern. The single most recognizable "old
+   tube TV" cue there is; kept deliberately subtle per feedback. */
+.tv-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 91;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.40) 0px,
+    rgba(0, 0, 0, 0.40) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  background-size: 100% 3px;
+  mix-blend-mode: multiply;
+  opacity: 0.95;
+  animation: scanline-roll 7s linear infinite;
+}
+
+/* Slow vertical drift, like an old set with the vertical hold a
+   touch off — 90px is an exact multiple of the 3px line spacing, so
+   the loop point is seamless, no visible jump. */
+@keyframes scanline-roll {
+  from { background-position: 0 0; }
+  to { background-position: 0 90px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tv-screen::before { animation: none; }
+}
+
+/* Mouse-following "magnet near the tube" warp — a small lens of the
+   same scanline texture, run through an SVG feDisplacementMap filter,
+   sitting right on top of the real scanlines wherever the cursor is.
+   Only the line texture bends, not the room content underneath. */
+.tv-warp-lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 420px;
+  height: 420px;
+  margin-left: -210px;
+  margin-top: -210px;
+  z-index: 91;
+  pointer-events: none;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.30) 0px,
+    rgba(0, 0, 0, 0.30) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  background-size: 100% 3px;
+  mix-blend-mode: multiply;
+  filter: url(#tv-warp-filter);
+  /* closest-side pins 100% to the box's own half-width, so the fade
+     always completes cleanly at the box edge — no square clipping
+     corner, no hard rim. A long, eased falloff (rather than a short
+     linear ramp) is what keeps this reading as an old set's magnetic
+     haze instead of a stamped-on circle. Stays strong out to ~35% of
+     the radius before it starts fading, so the warp itself reads
+     clearly instead of only the very center. */
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.9) 35%, rgba(0, 0, 0, 0.45) 65%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.9) 35%, rgba(0, 0, 0, 0.45) 65%, transparent 100%);
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+.tv-warp-lens.is-active { opacity: 1; }
+
+/* The lens draws its own copy of the line texture on top of the real
+   one, so wherever it's visible the darkening would otherwise stack
+   (multiply x multiply = a visibly darker disc, not just "warped
+   lines"). Punching a matching hole in the real layer — fully absent
+   under the lens, fading back in over the exact same 210px radius and
+   easing curve the lens fades out over — keeps exactly one layer's
+   worth of darkening everywhere, so only the warp itself is visible,
+   never a circle. */
+.tv-screen.is-warping::before {
+  animation-play-state: paused;
+  -webkit-mask-image: radial-gradient(circle 210px at var(--warp-x, 50%) var(--warp-y, 50%), transparent 0%, rgba(0, 0, 0, 0.1) 35%, rgba(0, 0, 0, 0.55) 65%, #000 100%);
+  mask-image: radial-gradient(circle 210px at var(--warp-x, 50%) var(--warp-y, 50%), transparent 0%, rgba(0, 0, 0, 0.1) 35%, rgba(0, 0, 0, 0.55) 65%, #000 100%);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tv-warp-lens { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tv-warp-lens { display: none; }
+}
+
+/* Rolling sync glitch — a faint horizontal band that drifts up the
+   screen on a steady 10s loop, like an old set with the vertical
+   hold just barely off. One line, but built from three thin slices
+   (white core + a red/cyan fringe on either side, like a signal with
+   its color channels slightly out of sync). The roll itself stays
+   linear (a stepped roll read as laggy/slow, not glitchy) — only the
+   quick little horizontal jitter is stepped, which is what actually
+   reads as a glitch without breaking the smooth upward drift. */
+.tv-glitch-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  z-index: 92;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 20%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.22) 80%,
+    transparent 100%
+  );
+  filter: blur(0.5px);
+  mix-blend-mode: screen;
+  animation: tv-glitch-roll 10s linear infinite, tv-glitch-jitter 0.6s steps(5, end) infinite;
+}
+.tv-glitch-line::before,
+.tv-glitch-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+}
+.tv-glitch-line::before {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 50, 60, 0.22) 20%,
+    rgba(255, 50, 60, 0.3) 50%,
+    rgba(255, 50, 60, 0.22) 80%,
+    transparent 100%
+  );
+  transform: translateX(-2px);
+}
+.tv-glitch-line::after {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(60, 210, 255, 0.22) 20%,
+    rgba(60, 210, 255, 0.3) 50%,
+    rgba(60, 210, 255, 0.22) 80%,
+    transparent 100%
+  );
+  transform: translateX(2px);
+}
+@keyframes tv-glitch-roll {
+  0% { top: 103%; opacity: 0; }
+  4% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% { top: -3%; opacity: 0; }
+}
+@keyframes tv-glitch-jitter {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tv-glitch-line { display: none; }
+}
+
+@media (orientation: portrait) {
+  .tv-screen {
+    left: 8.08%;
+    top: 4.19%;
+    width: 83.74%;
+    height: 74.52%;
+  }
+
+  .deck__slide,
+  .room__photo,
+  .room__video,
+  .room__tilt,
+  .tv-static {
+    aspect-ratio: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    inset: 0 !important;
+  }
+
+  .room__tilt picture {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ---- Static/snow: what an old TV actually does when the channel
+   changes — a burst of grainy black-and-white noise, not a flash.
+   Drawn to a low-res canvas in JS (random noise per frame) and
+   scaled up with pixelated rendering for that chunky CRT grain. ---- */
+
+.tv-static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  z-index: 200;
+  pointer-events: none;
+  image-rendering: pixelated;
+  opacity: 0;
+}
+.tv-static.is-active { opacity: 0.94; }
+
+/* ---- Channel card: the lower-third title + phone number that
+   sits over each commercial-parody image. Slides up and fades in,
+   like the punchline landing a beat after the scene loads. ---- */
+
+.channel-card {
+  position: absolute;
+  left: 6%;
+  bottom: 7%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  opacity: 0;
+}
+/* Video plays for 2s on its own first, then JS adds .is-in — the
+   punchline lands a beat after the scene loads, not instantly.
+   Researched how real 1970s regional TV commercial titles actually
+   moved: no slide, no eased fade — a cheap keyer just cuts from
+   video to the title card in one frame, no acceleration curve. What
+   actually reads as "old broadcast" isn't the entrance, it's a
+   persistent low-level flicker/jitter for as long as the title
+   holds (interlace roll, unstable keying on analog gear) — so the
+   entrance here is an instant cut (the animation's own 0% keyframe,
+   applied with no transition into it) and the animation just keeps
+   running after that as the hold-flicker. step-end (not eased)
+   between every keyframe so it jumps rather than glides. */
+.channel-card.is-in {
+  animation: channel-card-flicker 2.6s step-end infinite;
+}
+@keyframes channel-card-flicker {
+  0%   { opacity: 1;    transform: translate(0, 0); }
+  8%   { opacity: 0.97; transform: translate(0, 1px); }
+  16%  { opacity: 1;    transform: translate(-1px, 0); }
+  27%  { opacity: 0.98; transform: translate(0, 0); }
+  41%  { opacity: 1;    transform: translate(0, -1px); }
+  52%  { opacity: 0.96; transform: translate(1px, 0); }
+  63%  { opacity: 1;    transform: translate(0, 0); }
+  77%  { opacity: 0.98; transform: translate(0, 1px); }
+  89%  { opacity: 1;    transform: translate(-1px, 0); }
+  100% { opacity: 1;    transform: translate(0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .channel-card.is-in { animation: none; opacity: 1; }
+}
+.channel-card__title {
+  font-family: 'Bevan', var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 7.5vw, 6rem);
+  color: #F4C24B;
+  -webkit-text-stroke: 3px #3A1E0F;
+  paint-order: stroke fill;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  text-shadow: 5px 5px 0 #3A1E0F, 0 10px 26px rgba(0, 0, 0, 0.5);
+}
+/* ---- Channel view: the 5 commercial parodies. Hidden by default;
+   body.is-watching-channel swaps it in over the deck, which fades
+   out underneath instead of unmounting (so returning to it is
+   instant, no re-render). ---- */
+
+.channel-view {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+body.is-watching-channel .channel-view {
+  opacity: 1;
+  pointer-events: auto;
+}
+body.is-watching-channel .deck {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.channel-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Unifies 5 separate AI generations into "one broadcast" — slight
+     contrast punch, faint grain — without going as far as the
+     blotchy look we rejected earlier for the walkthrough footage.
+     Only applied here, never on the room photos/videos. Sepia is an
+     ADDITIVE warm tint — even pulled way back it was still pushing
+     an already-warm source further toward yellow, not correcting
+     it. Dropped entirely; the cool counter-tint below (::after)
+     corrects the color instead of compounding it. */
+  filter: saturate(0.95) contrast(1.08);
+}
+.channel-frame::after {
+  /* Real color correction: a cool, low-opacity tint blended with
+     `color` mode pulls the footage's hue toward neutral instead of
+     stacking more warmth on top of it — subtracting the yellow
+     cast rather than adding to it. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: #3A4A5C;
+  opacity: 0.16;
+  mix-blend-mode: color;
+}
+.channel-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url('assets/tv/madera.webp');
+  background-size: 300px;
+}
+
+.channel-view__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  object-fit: cover;
+  opacity: 0;
+  z-index: 1;
+}
+.channel-view__video.is-active {
+  opacity: 1;
+  z-index: 2;
+}
+
+.channel-card__phone {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  color: #FDF6E7;
+  letter-spacing: 0.14em;
+  -webkit-text-stroke: 1.5px #3A1E0F;
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 #3A1E0F, 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+/* The "call now" blink — a deliberate, steady on/off cue (separate
+   from the whole card's subtle broadcast jitter above), the classic
+   trope for making a phone number read as urgent. Held mostly on
+   with a clear dip, not a 50/50 flicker — step-end for a crisp
+   on/off snap rather than a soft pulse. */
+.channel-card.is-in .channel-card__phone {
+  animation: phone-blink 1.1s step-end infinite;
+}
+@keyframes phone-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .channel-card.is-in .channel-card__phone { animation: none; opacity: 1; }
+}
+
+/* ---- Controls housing: the narrow wood panel to the right of the
+   screen on desktop (tv.webp), the strip below the screen on
+   portrait (phone.webp). Percentages are measured off the real
+   transparent-hole bounding boxes in each source image. ---- */
+
+.tv-controls {
+  position: absolute;
+  /* Cross-checked two ways: visual crop inspection and a pixel scan
+     for the gold border at 3 different heights. Both converge on
+     87.5% / 96.1% — this is now a measured constant, not a guess. */
+  left: 87.5%;
+  right: 3.9%;
+  top: 4%;
+  bottom: 4%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6%;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .tv-controls {
+    left: 4%;
+    right: 4%;
+    top: 89.3%;
+    bottom: 2.8%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2%;
+  }
+}
+
+/* Cualquier vertical (teléfono y tablet): 5 controles en una fila.
+   El marco letterboxeado deja un panel angosto (~610px en un iPad a
+   820px de ancho); Idioma y Reset no entran con aire. El idioma se
+   maneja con la perilla del header / y la web arranca siempre en EN;
+   "volver al inicio" es un scroll hacia arriba. */
+@media (orientation: portrait) {
+  #tv-lang-knob,
+  #tv-reset {
+    display: none;
+  }
+}
+
+.tv-controls {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tv-btn {
+  position: relative;
+  width: 75.6%;
+  aspect-ratio: 3 / 2;
+  border: none;
+  background: none;
+  padding: 0;
+  pointer-events: auto;
+  cursor: var(--cursor-hand);
+  flex-shrink: 0;
+  transition: transform 0.08s ease-out;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+@media (orientation: portrait) {
+  .tv-btn { width: 18.9%; max-width: 94.5px; }
+}
+/* img--up is the permanent base — it never moves or fades, full
+   stop. img--down (the "pressed" photo) is the only layer that
+   reacts: it multiplies in on top and shifts slightly, so the
+   base plate reads as fixed to the panel and only the cap/overlay
+   feels pressed. */
+.tv-btn__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+.tv-btn__img--up { opacity: 1; }
+.tv-btn__img--down {
+  opacity: 0;
+  mix-blend-mode: multiply;
+  transition: opacity 0.14s ease-out, transform 0.14s ease-out;
+}
+.tv-btn:active .tv-btn__img--down,
+.tv-btn.is-current .tv-btn__img--down {
+  opacity: 0.6;
+  transform: scale(0.96) translateY(2px);
+}
+
+/* ---- Rotary knobs: channel / language (base fixed, cap rotates) ---- */
+
+.tv-knob {
+  position: relative;
+  width: 77.7%;
+  aspect-ratio: 1 / 1;
+  border: none;
+  background: none;
+  padding: 0;
+  pointer-events: auto;
+  cursor: var(--cursor-hand);
+  flex-shrink: 0;
+  /* Fine-tune knob-cap alignment here if it looks off-center —
+     the cap and base are two separate generations, so a tiny
+     mismatch between them is normal. Nudge in small steps. */
+  --cap-scale: 0.98;
+  --cap-x: 0%;
+  --cap-y: -1%;
+}
+.tv-knob--small { width: 58.8%; }
+@media (orientation: portrait) {
+  .tv-knob { width: 18.9%; max-width: 94.5px; }
+  .tv-knob--small { width: 18.9%; max-width: 94.5px; }
+}
+.tv-knob__base,
+.tv-knob__cap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  -webkit-user-drag: none;
+}
+.tv-knob__cap {
+  /* Measured from the actual pixel data (widest row of the alpha
+     shape), not assumed — the drawn knob sits a few % above and
+     left of the canvas's geometric center, so rotating around
+     50%/50% made it wobble instead of spinning in place. */
+  transform-origin: 49.8% 46%;
+  --cap-rot: 0deg;
+  transform: translate(var(--cap-x), var(--cap-y)) scale(var(--cap-scale)) rotate(var(--cap-rot));
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* ---- Music: plate + colored pilot light behind the translucent
+   bulb baked into music.webp. Starts "off" (muted red). ---- */
+
+.tv-music {
+  position: relative;
+  width: 58.8%;
+  aspect-ratio: 1 / 1;
+  border: none;
+  background: none;
+  padding: 0;
+  pointer-events: auto;
+  cursor: var(--cursor-hand);
+  flex-shrink: 0;
+}
+@media (orientation: portrait) {
+  .tv-music { width: 18.9%; max-width: 94.5px; }
+}
+.tv-music__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  -webkit-user-drag: none;
+}
+/* Two stacked glows, each a fixed color — the "change" is purely
+   opacity crossfading between them, which animates smoothly
+   (unlike animating between two different gradients directly). */
+.tv-music__glow {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 22%;
+  height: 22%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: opacity 0.5s ease-in-out;
+}
+.tv-music__glow--red {
+  opacity: 1;
+  background: radial-gradient(circle, #a8321f 0%, #6b1c10 70%, transparent 100%);
+  box-shadow: 0 0 10px 2px rgba(168, 50, 31, 0.5);
+}
+.tv-music__glow--green {
+  opacity: 0;
+  background: radial-gradient(circle, #4f9c4a 0%, #2c5e29 70%, transparent 100%);
+  box-shadow: 0 0 14px 4px rgba(79, 156, 74, 0.65);
+}
+.tv-music.is-on .tv-music__glow--red { opacity: 0; }
+.tv-music.is-on .tv-music__glow--green { opacity: 1; }
+
+/* ============================================================
+   DECK — a full-screen slide deck. Each .deck__slide is exactly
+   one viewport, always. On desktop, JS switches the deck into
+   "paginated" mode: slides stack via position:fixed and only the
+   active one is visible, advanced by wheel/keyboard with a
+   crossfade. Without JS (or on mobile), slides stay in normal
+   document flow and just stack — a plain, honest fallback.
+   ============================================================ */
+
+.deck {
+  position: relative;
+  overscroll-behavior: none;
+}
+
+.deck.is-paginated {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body.is-paginated {
+  overflow: hidden;
+  height: 100vh;
+  overscroll-behavior: none;
+}
+
+.tv-screen {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.tv-screen::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.deck__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.deck__slide.is-active {
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.deck.is-paginated .deck__slide {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.deck.is-paginated .deck__slide.is-active {
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+/* The room being dissolved INTO during a hop — added/removed in JS
+   (see beginScrub/resetScrubState). Without this it had no z-index
+   of its own, so it sat BEHIND the still-.is-active room it's
+   replacing for the entire hop; the crossfade then blended through
+   two stacked semi-transparent layers plus the dark screen
+   background beneath both, reading as a muddy gray wash instead of
+   a clean dissolve. This keeps the incoming room on top the whole
+   time, active or not. */
+.deck.is-paginated .deck__slide.is-scrubbing {
+  z-index: 3;
+  visibility: visible;
+}
+
+/* ============================================================
+   SHARED — photo section (full-bleed room background)
+   Every "room" slide shares this scaffold: a full-bleed photo,
+   an optional scrim for text legibility, and content on top.
+   ============================================================ */
+
+.room {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.room__tilt {
+  position: absolute;
+  inset: 0;
+}
+
+.room__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* The photo is the always-present fallback (instant, no decode
+   delay); the video layers on top once it's ready to play. Room
+   videos that aren't the hero loop start paused on their first
+   frame and only play once, triggered on arrival — see script.js. */
+.room__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  margin: auto;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+  /* No background here on purpose: a canvas with nothing drawn yet
+     is transparent, which is exactly what lets .room__photo (behind
+     it, lower z-index) show through as the loading fallback. A CSS
+     background on the canvas itself would paint an opaque layer over
+     that photo regardless of whether any frame had actually loaded —
+     which is exactly the bug this used to be (a "gray"/flat-color
+     flash covering the real fallback instead of revealing it). */
+}
+
+.room__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.room__content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Held back until each room's hop settles on its resting frame,
+   instead of appearing the instant the slide becomes current (which
+   read as text landing mid-scrub, before the shot it's reacting to
+   — an empty desk, a "LINE STATUS" board — had actually arrived).
+   See the "DELAYED REVEALS" listener in script.js. */
+.reveal-on-settle {
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-out);
+}
+
+.reveal-on-settle.is-revealed { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The fixed/paginated hop machinery that fires the reveal never
+     initializes in this mode (see `paginate` in script.js) — nothing
+     would ever add .is-revealed, so force it visible instead of
+     leaving every room's text permanently at opacity:0. */
+  .reveal-on-settle { opacity: 1; transition: none; }
+}
+
+/* ============================================================
+   DOT NAV — desktop paginated mode only
+   ============================================================ */
+
+.deck-dots {
+  display: none;
+  position: fixed;
+  right: clamp(1.25rem, 3vw, 2.25rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+body.is-paginated .deck-dots {
+  /* Visual nav retired along with the header (the TV panel covers
+     it) — but kept functional in the DOM: Reset and the TV buttons
+     drive slide changes by calling .click() on these dots. */
+  display: none;
+}
+.deck-dots__item {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(155deg, #4a3a29, #1c130c);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 240, 210, 0.12),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55);
+  transition: background 0.3s, box-shadow 0.3s, transform 0.15s;
+}
+.deck-dots__item:hover { transform: scale(1.18); }
+.deck-dots__item:active { transform: scale(0.9); }
+.deck-dots__item.is-active {
+  background: linear-gradient(155deg, #e0ac5c, var(--brass-deep));
+  box-shadow:
+    0 0 7px rgba(184, 134, 59, 0.55),
+    inset 0 1px 0 rgba(255, 226, 174, 0.35),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   HERO — the lobby, then a cinematic walk down the hallway
+   (pinned on desktop; a single still on mobile).
+   ============================================================ */
+
+.hero {
+  background: var(--ink);
+}
+
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 15, 10, 0.55) 0%, rgba(20, 15, 10, 0.05) 32%, rgba(20, 15, 10, 0.1) 60%, rgba(20, 15, 10, 0.75) 100%);
+}
+
+.hero__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  text-align: right;
+  padding: clamp(6rem, 14vw, 9rem) var(--gutter) clamp(3rem, 8vw, 5rem);
+  max-width: none;
+}
+
+/* ---- Hero signal line — same "commercial title + phone number"
+   pairing as the channel-view parodies (.channel-card__title /
+   .channel-card__phone), scaled down for the hero. Deliberate echo:
+   the hero reads like the sixth ad in the same tape, just for the
+   guy who made the other five. ---- */
+.hero__signal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2em;
+}
+.hero__signal-title {
+  font-family: 'Bevan', var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6.5vw, 4.5rem);
+  color: #F4C24B;
+  -webkit-text-stroke: 2px #3A1E0F;
+  paint-order: stroke fill;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-shadow: 3px 3px 0 #3A1E0F, 0 6px 16px rgba(0, 0, 0, 0.5);
+  /* Same low-level analog jitter as the channel-view title card
+     (.channel-card.is-in) — the hero reads like the sixth ad in the
+     same tape, so it wobbles like one. */
+  animation: channel-card-flicker 2.6s step-end infinite;
+}
+.hero__signal-line {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  color: #FDF6E7;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px #3A1E0F;
+  paint-order: stroke fill;
+  text-shadow: 1.5px 1.5px 0 #3A1E0F, 0 3px 10px rgba(0, 0, 0, 0.5);
+  animation: phone-blink 1.1s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__signal-title { animation: none; }
+  .hero__signal-line { animation: none; }
+}
+
+/* ---- Shared Scroll Nudge Prompt (Idle hint timer for rooms) ---- */
+.room__scroll-nudge {
+  display: none;
+  position: absolute;
+  bottom: clamp(1rem, 3.5vh, 2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  color: #FDF6E7;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px #3A1E0F;
+  paint-order: stroke fill;
+  text-shadow: 1.5px 1.5px 0 #3A1E0F, 0 3px 10px rgba(0, 0, 0, 0.5);
+  cursor: var(--cursor-hand);
+  user-select: none;
+  background: none;
+  border: none;
+  padding: 0.35rem 0.9rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.room__scroll-nudge.is-visible {
+  display: block;
+  pointer-events: auto;
+  animation: phone-blink 1.1s step-end infinite;
+}
+
+.room__scroll-nudge--about,
+.room__scroll-nudge--cta {
+  left: 25%;
+}
+
+@media (max-width: 800px), (orientation: portrait) {
+  .room__scroll-nudge {
+    bottom: clamp(0.8rem, 2.5vh, 1.5rem);
+    left: 50% !important;
+    transform: translateX(-50%);
+    font-size: clamp(1.2rem, 4.2vw, 1.6rem);
+  }
+}
+@media (orientation: portrait) and (min-width: 600px) {
+  .room__scroll-nudge { font-size: clamp(1.5rem, 5cqi, 2.6rem); }
+}
+
+/* ============================================================
+   SECTION HEAD — shared title block for each room
+   ============================================================ */
+
+.section-head {
+  padding: clamp(3rem, 7vw, 5rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 720px;
+}
+.section-head__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Handwritten treatment — for titles staged as ink on a physical
+   paper surface in the shot itself (the Work corkboard note, the
+   Footer notepad), as opposed to the rest of the UI's typeset
+   voice. Same font both places so the two paper props read as one
+   motif. Slight rotation reads as "actually written", not typeset. */
+.section-head__title--hand {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 6.2vw, 4rem);
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  transform: rotate(-1deg);
+  transform-origin: left top;
+  margin-top: 0.5rem;
+  /* Ink on the corkboard note itself — dark regardless of room--dark
+     (which pales everything else for the photo behind it). */
+  color: #2A1B10 !important;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+/* Dark rooms (photo is dim / text sits pale) */
+.room--dark .section-head__title { color: var(--paper); }
+
+/* ============================================================
+   WORK — the switchboard room. A note pinned to the corkboard
+   cycles through projects; the room photo never moves.
+   ============================================================ */
+
+.work {
+  background: var(--ink);
+}
+
+.work__board {
+  position: absolute;
+  flex-direction: column;
+  z-index: 2;
+  left: 9%;
+  top: 10%;
+  width: 61%;
+  height: 70%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
+}
+
+.work__cards-grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.work__note {
+  position: absolute;
+  background: var(--paper);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(20, 14, 8, 0.4), 0 1px 0 rgba(0,0,0,0.05);
+  padding: 0.5rem;
+  width: clamp(69.5px, 9.5vw, 95px);
+  height: clamp(69.5px, 9.5vw, 95px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-hand);
+  transition: opacity 0.4s ease, box-shadow 0.2s ease, z-index 0s;
+  transform: rotate(var(--rot, 0deg));
+  }
+
+/* Cascade animation: cards get slapped onto the board one by one */
+.is-revealed .work__note {
+  animation: pin-slap var(--dur, 1.4s) both;
+  animation-delay: calc(0.6s + var(--i, 0) * 0.18s);
+}
+
+@keyframes pin-slap {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--rot, 0deg)) translateY(-20px);
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1); /* Accelerate downwards */
+  }
+  10% {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg)) translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1); /* Decelerate into first swing */
+  }
+  /* Paper settles — pendulum physics (ease-in-out) */
+  26% {
+    transform: rotate(calc(var(--rot, 0deg) + 5deg * var(--wobble, 1) * var(--dir, 1))) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  44% {
+    transform: rotate(calc(var(--rot, 0deg) - 3deg * var(--wobble, 1) * var(--dir, 1))) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: rotate(calc(var(--rot, 0deg) + 1.5deg * var(--wobble, 1) * var(--dir, 1))) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  78% {
+    transform: rotate(calc(var(--rot, 0deg) - 0.6deg * var(--wobble, 1) * var(--dir, 1))) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  90% {
+    transform: rotate(calc(var(--rot, 0deg) + 0.2deg * var(--wobble, 1) * var(--dir, 1))) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg)) translateY(0);
+    animation-timing-function: ease-out; /* Glide to a complete stop */
+  }
+}
+
+.work__note::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--brass);
+  border-radius: 50%;
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.2);
+}
+
+.work__note:hover {
+  box-shadow: 0 12px 20px -8px rgba(0,0,0,0.6);
+  z-index: 10;
+}
+
+/* Handwriting reveal for the title */
+.work__board .section-head__title {
+  clip-path: inset(0 100% 0 0);
+}
+.is-revealed .section-head__title {
+  animation: handwrite 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+@keyframes handwrite {
+  0%   { clip-path: inset(0 100% 0 0); }
+  100% { clip-path: inset(0 0% 0 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work__note { opacity: 1; transform: rotate(var(--rot, 0deg)); }
+  .is-revealed .work__note { animation: none; }
+  .is-revealed .section-head__title { animation: none; clip-path: none; }
+}
+
+.work__note-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.45rem, 0.75vw, 0.65rem);
+  white-space: normal;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: center;
+  margin-top: 0;
+  line-height: 1.1;
+}
+
+/* ============================================================
+   WORK DETAIL — a single project note, expanded into a full
+   case-study dossier. Prototype: the clicked .work__note FLIPs
+   (measured start rect -> transform to identity) into this
+   shared panel, filling the board area.
+   ============================================================ */
+.work__detail {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  background: var(--paper);
+  border-radius: 8px;
+  box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--line-strong);
+  overflow: hidden;
+  flex-direction: column;
+}
+.work__detail.is-open {
+  display: flex;
+}
+
+/* Dossier Top Header Bar */
+.work__detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(234, 223, 200, 0.4);
+  flex-shrink: 0;
+  user-select: none;
+}
+.work__detail-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--brass-deep);
+}
+.work__detail-tag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rust);
+  box-shadow: 0 0 6px var(--rust);
+  display: inline-block;
+}
+.work__detail-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.work__detail-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.28rem 0.65rem;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  transition: all 0.2s ease;
+  cursor: var(--cursor-hand);
+}
+.work__detail-nav-btn:hover {
+  color: var(--ink);
+  border-color: var(--brass);
+  background: var(--cream);
+  transform: translateY(-1px);
+}
+.work__detail-close {
+  position: static;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  margin-left: 0.6rem;
+  cursor: var(--cursor-hand);
+}
+.work__detail-close:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: rgba(43, 36, 32, 0.08);
+}
+
+/* Scrollable Dossier Body */
+.work__detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem 1.8rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.work__detail-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.work__detail-scroll::-webkit-scrollbar-track {
+  background: rgba(43, 36, 32, 0.04);
+  border-radius: 3px;
+}
+.work__detail-scroll::-webkit-scrollbar-thumb {
+  background: var(--brass);
+  border-radius: 3px;
+}
+.work__detail-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--brass-deep);
+}
+
+/* Hero: Video Preview + Intro */
+.work__detail-hero {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 1.6rem;
+  align-items: start;
+}
+.work__detail-media {
+  width: 100%;
+}
+.work__detail-frame {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.45);
+  background: #191411;
+}
+.work__detail-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #27211c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.work__detail-frame-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+.work__detail-frame-url {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.04em;
+}
+.work__detail-video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0f0d0b;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.work__detail-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.work__detail-video.is-hidden {
+  display: none;
+}
+.work__detail-media-placeholder {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(135deg, #E4D8BE, #E4D8BE 10px, #D8CBAE 10px, #D8CBAE 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.work__detail-media-placeholder.is-hidden {
+  display: none;
+}
+.work__detail-media-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: rgba(43, 36, 32, 0.55);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.35rem 0.8rem;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+/* Intro Right Column */
+.work__detail-intro {
+  display: flex;
+  flex-direction: column;
+}
+.work__detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.work__detail-category {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+}
+.work__detail-year {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 3px;
+  background: rgba(43, 36, 32, 0.08);
+  color: var(--ink-soft);
+}
+.work__detail-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.2vw, 1.95rem);
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 0.55rem;
+}
+.work__detail-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+}
+
+/* Stats Badges */
+.work__detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+.work__detail-stat-pill {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.75rem;
+  background: rgba(184, 134, 59, 0.08);
+  border: 1px solid rgba(184, 134, 59, 0.28);
+  border-radius: 6px;
+}
+.work__detail-stat-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--brass-deep);
+  line-height: 1.1;
+}
+.work__detail-stat-lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* Action Button */
+.work__detail-actions {
+  margin-top: auto;
+}
+.work__detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  color: var(--paper);
+  background: var(--ink);
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(43, 36, 32, 0.18);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.work__detail-link:hover {
+  background: var(--brass-deep);
+  color: var(--paper);
+  transform: translateY(-1px);
+}
+
+/* Case Study: Challenge & Solution Cards */
+.work__detail-section {
+  display: flex;
+  flex-direction: column;
+}
+.work__detail-case {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.work__detail-case-card {
+  padding: 1.05rem 1.2rem;
+  background: var(--cream);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  position: relative;
+}
+.work__detail-case-card--challenge {
+  border-left: 4px solid var(--rust);
+}
+.work__detail-case-card--solution {
+  border-left: 4px solid var(--brass);
+}
+.work__detail-case-text {
+  font-size: 0.87rem;
+  line-height: 1.55;
+  color: var(--ink);
+  margin-top: 0.35rem;
+}
+
+/* Headings */
+.work__detail-section-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+  margin-bottom: 0.5rem;
+}
+.work__detail-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.work__detail-section-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* Expanded Palette Grid with HEX Codes */
+.work__detail-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+.work__palette-card {
+  background: var(--cream);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 0.55rem;
+  cursor: var(--cursor-hand);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  user-select: none;
+}
+.work__palette-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -4px rgba(43, 36, 32, 0.18);
+  border-color: var(--brass);
+}
+.work__palette-swatch {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.work__palette-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.work__palette-role {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.work__palette-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.work__palette-hex-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+.work__palette-hex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brass-deep);
+  letter-spacing: 0.04em;
+}
+.work__palette-copy-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.55;
+  stroke: var(--ink-soft);
+}
+.work__palette-toast {
+  position: absolute;
+  inset: 0;
+  background: rgba(43, 36, 32, 0.92);
+  color: var(--paper);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.work__palette-card.is-copied .work__palette-toast {
+  opacity: 1;
+}
+
+/* Typography Grid */
+.work__detail-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.work__type-card {
+  padding: 0.75rem 0.9rem;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.work__type-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin-bottom: 0.25rem;
+}
+.work__type-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+.work__type-sample {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.03em;
+}
+
+/* Tech Stack Groups */
+.work__detail-stack-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.work__stack-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.work__stack-category {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brass-deep);
+  min-width: 105px;
+}
+.work__stack-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.work__stack-tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink);
+  background: rgba(184, 134, 59, 0.12);
+  border: 1px solid var(--line-strong);
+  padding: 0.22rem 0.55rem;
+  border-radius: 4px;
+}
+
+/* Deliverables Checklist */
+.work__detail-deliverables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.55rem;
+}
+.work__deliverable-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.work__deliverable-icon {
+  color: var(--brass-deep);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Bottom Footer Navigation */
+.work__detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.4rem;
+}
+.work__detail-footer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.45rem 0.8rem;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  transition: all 0.2s ease;
+  cursor: var(--cursor-hand);
+}
+.work__detail-footer-btn:hover {
+  color: var(--ink);
+  border-color: var(--brass);
+  background: var(--paper);
+}
+
+.work__caption {
+  display: none;
+}
+.work__caption strong { color: var(--brass); }
+
+@media (max-width: 800px), (orientation: portrait) {
+  #system .section-head { display: none; }
+
+  .work__board { 
+    left: 8%; top: 8%; width: 84%; height: 78%; 
+    flex-direction: column; bottom: auto; 
+    overflow: visible;
+  }
+  .work__board .section-head {
+    margin-top: -2% !important;
+    padding-left: 0;
+    margin-left: -8%;
+  }
+  .work__cards-grid .work__note:nth-child(1) { left: 4% !important; top: 12% !important; }
+  .work__cards-grid .work__note:nth-child(2) { left: 28% !important; top: 8% !important; }
+  .work__cards-grid .work__note:nth-child(3) { left: 52% !important; top: 13% !important; }
+  .work__cards-grid .work__note:nth-child(4) { left: 74% !important; top: 6% !important; }
+  
+  .work__cards-grid .work__note:nth-child(5) { left: 5% !important; top: 48% !important; }
+  .work__cards-grid .work__note:nth-child(6) { left: 27% !important; top: 52% !important; }
+  .work__cards-grid .work__note:nth-child(7) { left: 51% !important; top: 46% !important; }
+  .work__cards-grid .work__note:nth-child(8) { left: 73% !important; top: 50% !important; }
+
+  .work__note {
+    width: clamp(58px, 16.3vw, 75px);
+    height: clamp(58px, 16.3vw, 75px);
+    position: absolute;
+    padding: 0.35rem;
+  }
+  .work__note-name {
+    font-size: clamp(0.51rem, 1.94vw, 0.66rem);
+    line-height: 1.1;
+  }
+
+  .work__detail-header {
+    padding: 0.5rem 0.8rem;
+  }
+  .work__detail-scroll {
+    padding: 1rem 0.9rem 1.6rem;
+    gap: 1.3rem;
+  }
+  .work__detail-hero {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .work__detail-case {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .work__detail-palette-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .work__palette-swatch {
+    height: 40px;
+  }
+  .work__palette-name {
+    font-size: 10.5px;
+  }
+  .work__detail-type-grid {
+    grid-template-columns: 1fr;
+  }
+  .work__detail-deliverables {
+    grid-template-columns: 1fr;
+  }
+  .work__stack-row {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .work__stack-category {
+    min-width: unset;
+  }
+  .work__detail-footer {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .work__detail-footer-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Tablet en vertical — el layout de teléfono se mantiene igual, pero
+   los tamaños (que estaban clavados en px pensados para ~390px) suben
+   con cqi para acompañar la pantalla más grande del TV. No toca el
+   teléfono: (min-width: 600px) nunca matchea un móvil en vertical. */
+@media (orientation: portrait) and (min-width: 600px) {
+  /* El corcho se centra en la foto (bajaba pegado arriba). */
+  .work__board { top: 14%; }
+  .work__board .section-head {
+    margin-left: 2%;
+  }
+  .work__board .section-head__title {
+    font-size: clamp(4rem, 12.5cqi, 7.5rem);
+    white-space: normal;
+  }
+  .work__note {
+    width: clamp(80px, 17.8cqi, 143px);
+    height: clamp(80px, 17.8cqi, 143px);
+  }
+  /* -5% de fuente para que "SIGNATURE AGENCY"/"SIGNATURE AI" no se
+     salgan de la tarjeta, sumado a la tarjeta un poco más grande. */
+  .work__note-name { font-size: clamp(0.72rem, 2.75cqi, 1rem); }
+}
+
+/* ============================================================
+   SYSTEM — the relay room. Four steps live in the four slots
+   of the "LINE STATUS" board.
+   ============================================================ */
+
+.system {
+  background: var(--ink);
+}
+
+.system__board {
+  position: absolute;
+  z-index: 2;
+  left: 19.7%;
+  top: 43%;
+  width: 60.5%;
+  height: 40%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8%;
+  transform: translateY(-35%);
+}
+
+/* The connecting thread — a detective-board string zigzagging from
+   the red pin on note 1, past notes 2 and 3, to the red pin on note
+   4. An SVG polyline instead of a straight div now that it needs to
+   pass through 4 points, not 2. Point coordinates (0-100, matching
+   the viewBox) are measured directly off the live note positions. */
+.system__thread {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.system__thread svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.system__thread-seg {
+  fill: none;
+  stroke: #9C2A1D;
+  stroke-width: 1.6;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+}
+/* Each segment catches up to the note it just reached, so the
+   thread appears to get pinned up right along with the notes
+   instead of snapping in as one finished shape. */
+.system__board.is-revealed .system__thread-seg--1 { opacity: 1; transition-delay: 0.3s; }
+.system__board.is-revealed .system__thread-seg--2 { opacity: 1; transition-delay: 0.55s; }
+.system__board.is-revealed .system__thread-seg--3 { opacity: 1; transition-delay: 0.8s; }
+
+/* Sticky-note cards — lighter, aged paper (not the amber the wood
+   vignette tints a plain --cream down to), pinned only at the top so
+   each one sits at a slight, alternating tilt like it was stuck up
+   by hand, with a soft loose-bottom shadow instead of a flat one.
+   They no longer fade in as one flat block (.reveal-on-settle is
+   cancelled on the board itself, below) — each note fades in on its
+   own delay so they land one after another. */
+.system__slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: end;
+  text-align: center;
+  padding: 8% 6% 10%;
+  background: #F7EFDC;
+  mix-blend-mode: normal;
+  border-radius: 3px;
+  box-shadow: 1px 6px 10px rgba(0, 0, 0, 0.35);
+  transform-origin: top center;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out);
+}
+.system__board.reveal-on-settle { opacity: 1; transition: none; }
+.system__board.is-revealed .system__slot:nth-child(1) { opacity: 1; transition-delay: 0.05s; }
+.system__board.is-revealed .system__slot:nth-child(2) { opacity: 1; transition-delay: 0.3s; }
+.system__board.is-revealed .system__slot:nth-child(3) { opacity: 1; transition-delay: 0.55s; }
+.system__board.is-revealed .system__slot:nth-child(4) { opacity: 1; transition-delay: 0.8s; }
+@media (prefers-reduced-motion: reduce) {
+  .system__slot, .system__thread-seg { opacity: 1; transition: none; }
+}
+/* Each note gets its own tilt and height so the row doesn't read as
+   a grid — and alternates how it's "attached": a pin through the top
+   (1 and 4) versus a strip of tape across the corner (2 and 3). */
+.system__slot:nth-child(1) { transform: rotate(-1.6deg) translateY(7px) scale(0.9); }
+.system__slot:nth-child(2) { transform: rotate(1.3deg) translateY(calc(-9px + 30%)) scale(0.9); }
+.system__slot:nth-child(3) { transform: rotate(-2deg) translateY(3px) scale(0.9); }
+.system__slot:nth-child(4) { transform: rotate(1.7deg) translateY(calc(-5px + 30%)) scale(0.9); }
+
+.system__slot::before {
+  content: '';
+  position: absolute;
+}
+/* Tape on all four corners — a translucent strip laid diagonally
+   across the top edge, each at its own angle/position so the row
+   doesn't look stamped from one template. */
+.system__slot::before {
+  top: -9px;
+  width: 46px;
+  height: 17px;
+  border-radius: 1px;
+  background: linear-gradient(rgba(255, 255, 255, 0.68), rgba(238, 230, 210, 0.42));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.system__slot:nth-child(1)::before { left: 18%; transform: translateX(-50%) rotate(-8deg); }
+.system__slot:nth-child(2)::before { left: 32%; transform: translateX(-50%) rotate(-7deg); }
+.system__slot:nth-child(3)::before { left: 68%; transform: translateX(-50%) rotate(6deg); }
+.system__slot:nth-child(4)::before { left: 82%; transform: translateX(-50%) rotate(8deg); }
+/* Numbers read as hand-circled rather than a printed stat — a
+   slightly irregular, hand-drawn-looking ring around each digit
+   instead of a straight underline. */
+.system__slot-num {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(14px, 1.82vw, 18px);
+  color: #2A1608;
+  mix-blend-mode: normal;
+  letter-spacing: 0.05em;
+  width: 2.3em;
+  height: 2.3em;
+  margin: 0 auto 0.6rem;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  -webkit-text-stroke: 0.5px currentColor;
+}
+.system__slot-num::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border: 1.6px solid currentColor;
+  border-radius: 46% 54% 52% 48% / 55% 48% 52% 45%;
+  opacity: 0.75;
+  transform: rotate(-4deg);
+}
+.is-revealed .system__slot-num {
+  animation: type-char 0.05s ease both;
+  animation-delay: 0.3s;
+}
+/* Stenciled-label voice — a printed status-board readout (the room's
+   own "LINE STATUS" panel), deliberately the opposite of the Work/
+   Footer handwriting: mechanical, not personal. */
+.system__slot-title {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(0.7rem, 1.4vw, 0.95rem);
+  line-height: 1.25;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #1A0D04;
+  mix-blend-mode: normal;
+  margin-bottom: 0.4rem;
+  min-height: 2.6em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  -webkit-text-stroke: 0.5px currentColor;
+}
+.system__slot-text {
+  font-size: clamp(0.68rem, 1vw, 0.82rem);
+  font-weight: 500;
+  line-height: 1.45;
+  color: #3D2E1E;
+  mix-blend-mode: normal;
+  -webkit-text-stroke: 0.3px currentColor;
+  display: none;
+  min-height: 4.35em;
+}
+@media (min-width: 700px) { .system__slot-text { display: block; } }
+
+.system__mobile-nav { display: none; }
+
+@media (max-width: 800px), (orientation: portrait) {
+  .system__board {
+    position: absolute;
+    z-index: 2;
+    left: 28%;
+    top: 26%;
+    width: 44%;
+    height: 44%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: var(--cursor-hand);
+    transform: translateY(-2%);
+  }
+  .system__thread { display: none; }
+  /* Una sola tarjeta a la vez: acá es una HOJA vertical (más alta que
+     ancha, esquinas casi rectas), no el post-it inclinado del desktop.
+     La cinta de arriba se mantiene. */
+  .system__slot {
+    background: var(--paper);
+    border-radius: 2px;
+    padding: 8% 9%;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 90%;
+    box-sizing: border-box;
+    transform: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  .system__slot-text { display: block; }
+  /* Texto de la tarjeta — en desktop es chico (4 tarjetas en fila);
+     con una sola tarjeta a pantalla completa tiene que crecer. */
+  .system__slot-num { font-size: clamp(15px, 5.5cqi, 24px); }
+  .system__slot-title { font-size: clamp(0.85rem, 5cqi, 1.2rem); }
+  .system__slot-text { font-size: clamp(0.78rem, 4.4cqi, 1.05rem); }
+
+  /* Only one of the 4 steps is on screen at a time on mobile (see
+     initSystemCarousel in script.js) — nothing about the card itself
+     signals there's more to see, so this sits just under it: dots
+     mark position/count, the hint names the tap-to-advance gesture.
+     El hint se alinea abajo y centrado, igual que "SCROLL ↓". */
+  .system__mobile-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: clamp(0.8rem, 2.5vh, 1.5rem);
+    width: auto;
+    pointer-events: none;
+  }
+  .system__mobile-dots {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .system__mobile-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.25s, transform 0.25s;
+  }
+  .system__mobile-dot.is-active {
+    background: var(--brass);
+    transform: scale(1.35);
+  }
+  .system__mobile-hint {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(1.05rem, 3.8vw, 1.45rem);
+    margin-top: 0;
+    white-space: nowrap;
+    color: #FDF6E7;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    -webkit-text-stroke: 1px #3A1E0F;
+    paint-order: stroke fill;
+    text-shadow: 1.5px 1.5px 0 #3A1E0F, 0 3px 10px rgba(0, 0, 0, 0.5);
+    animation: phone-blink 1.1s step-end infinite;
+  }
+}
+@media (max-width: 800px) and (prefers-reduced-motion: reduce), (orientation: portrait) and (prefers-reduced-motion: reduce) {
+  .system__mobile-hint { animation: none; }
+}
+
+/* Tablet en vertical: "TAP FOR NEXT →" iguala a "SCROLL ↓", y el texto
+   de la tarjeta va al doble (una sola tarjeta a pantalla grande). */
+@media (orientation: portrait) and (min-width: 600px) {
+  .system__mobile-hint { font-size: clamp(1.35rem, 4.5cqi, 2.35rem); }
+  .system__slot-num { font-size: clamp(1.4rem, 6.2cqi, 2.6rem); }
+  .system__slot-title { font-size: clamp(1.1rem, 5cqi, 2.2rem); }
+  .system__slot-text { font-size: clamp(1rem, 4.4cqi, 1.9rem); }
+}
+
+/* ============================================================
+   ABOUT — Pablo's office. Text sits in the clean half of frame.
+   ============================================================ */
+
+.about {
+  background: var(--ink);
+  justify-content: center;
+}
+
+.about__copy {
+  position: relative;
+  z-index: 2;
+  max-width: 45%;
+  padding: clamp(2rem, 6vw, 0) var(--gutter);
+  margin-left: 2vw;
+  transform: translateY(30%);
+}
+
+.about__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.4vw, 3rem);
+  color: var(--paper);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.7rem;
+  /* Mismo jitter analógico sutil que .hero__signal-title y los
+     títulos de canal — consistente en todos los breakpoints. */
+  animation: channel-card-flicker 2.6s step-end infinite;
+  }
+@media (prefers-reduced-motion: reduce) {
+  .about__title { animation: none; }
+}
+
+.about__intro {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.33rem, 2.47vw, 1.81rem); /* -5% */
+  color: #D9CBB0; /* apagado, no compite con .about__title */
+  line-height: 1.25;
+  margin-bottom: 1.1rem;
+  }
+
+.about__body {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #D9CBB0;
+  margin-bottom: 1rem;
+}
+
+.about__line {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #D9CBB0;
+  margin-bottom: 0.3rem;
+}
+.about__line:last-of-type { margin-bottom: 1rem; }
+
+.about__closing {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  font-weight: 700;
+  color: var(--paper);
+}
+
+
+@media (max-width: 800px), (orientation: portrait) {
+  .about__copy {
+    margin-left: 0;
+    max-width: 92%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    position: absolute;
+    top: 3%;
+    left: 4%;
+    transform: none;
+  }
+  .about__title, .about__intro, .about__body, .about__line, .about__closing { text-align: center; }
+  /* Tamaños relativos a la pantalla del TV (cqi = 1% de su ancho), no
+     a la ventana — el mismo número se ve proporcionalmente igual en un
+     teléfono de 390px que en un iPad o un monitor vertical. Los clamp
+     son solo tope de seguridad en los extremos. */
+  .about__title { font-size: clamp(1.9rem, 11.5cqi, 4rem); margin-bottom: 0.34em; }
+  /* Only "Not a bot." reads as a heading on mobile — the intro line
+     drops down to match the body's plain-text voice instead of
+     standing out as a second title. */
+  /* Todo el cuerpo: mismo tamaño, mismo interlineado (1.55) y el MISMO
+     hueco entre cada párrafo (0.7em). El intro dejó de ser un segundo
+     título — es texto corrido igual que el resto. Sin excepciones de
+     espaciado, así ningún hueco "no coincide". */
+  .about__intro {
+    font-family: inherit;
+    font-weight: 400;
+  }
+  .about__body { display: none; }
+  .about__intro,
+  .about__line,
+  .about__line:last-of-type,
+  .about__closing {
+    /* Space Mono es más ancho y hace wrapear más líneas -> el bloque
+       crecía y tapaba la cara en el teléfono. Baja ~13% (el tablet
+       tiene su propio override más abajo y no se ve afectado). */
+    font-size: clamp(0.8rem, 4.5cqi, 1.5rem);
+    line-height: 1.5;
+    color: #D9CBB0;
+    margin-bottom: 0.4em;
+  }
+  .about__closing { color: var(--paper); margin-bottom: 0; }
+}
+
+/* Tablet en vertical: el cuerpo del About (no el título) un 10% más
+   chico. Va después del bloque móvil para ganarle en cascada. */
+@media (orientation: portrait) and (min-width: 600px) {
+  .about__intro,
+  .about__line,
+  .about__closing { font-size: clamp(0.81rem, 4.7cqi, 1.58rem); }
+}
+
+/* Cuerpo del About en Space Mono (el título sigue en Fraunces) — la
+   misma voz "central telefónica" del resto del sitio. Va después del
+   bloque móvil para ganarle a su `font-family: inherit`.
+   `text-wrap: balance` reparte las líneas para que no queden palabras
+   huérfanas; el tracking negativo compacta el mono (más ancho de por
+   sí) para que lea cómodo en párrafo. */
+.about__intro,
+.about__body,
+.about__line,
+.about__closing {
+  font-family: var(--font-mono);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* Desktop-mode windows that are short relative to their width (a
+   4:3-ish monitor, or a browser resized much shorter than wide) —
+   the TV frame letterboxes top/bottom (see .tv-frame's width/height
+   min() rule), shrinking the screen's actual height a lot more than
+   its width. Font sizes here scale off vw, not vh, so on a squashed
+   screen like this the untouched about copy ran taller than the
+   room and its tags row was clipped by .room's overflow:hidden. */
+@media (min-width: 800px) and (max-aspect-ratio: 3/2) and (orientation: landscape) {
+  .about__title { font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 0.4rem; }
+  .about__intro { font-size: clamp(1rem, 1.9vw, 1.24rem); margin-bottom: 0.6rem; } /* -5% */
+  .about__body { font-size: 0.82rem; line-height: 1.4; margin-bottom: 0.5rem; }
+  .about__line { font-size: 0.82rem; line-height: 1.4; }
+}
+
+/* ============================================================
+   CTA — the desk phone. Text sits in the dark upper-left.
+   ============================================================ */
+
+.cta {
+  background: var(--ink);
+  justify-content: center;
+}
+
+.cta__inner {
+  /* Absolutely positioned (rather than flex-centered + translateY)
+     so its top edge is a fixed point on the room regardless of which
+     .cta__view is active — the intro (short) and the message form
+     (much taller) used to share one flex-centered box, so swapping
+     between them shifted the whole thing by however much taller the
+     new content was. */
+  position: absolute;
+  z-index: 2;
+  top: 17.74%;
+  left: 0;
+  right: 0;
+  max-width: 640px;
+  padding: 0 var(--gutter);
+}
+
+.cta__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.05;
+  color: var(--paper);
+  white-space: nowrap;
+  /* Mismo jitter analógico sutil que .about__title / .hero__signal-title
+     / los títulos de canal — consistente en todos los devices. */
+  animation: channel-card-flicker 2.6s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta__title { animation: none; }
+}
+.cta__accent { color: var(--brass); }
+
+.cta__subtitle {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  /* Mismo tamaño que el cuerpo del About (.about__line/.about__body). */
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  color: #D9CBB0;
+  margin-top: 0.6rem;
+}
+
+.cta__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.cta__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--brass);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.95rem 1.5rem;
+  border-radius: var(--radius);
+  transition: background 0.25s, transform 0.25s;
+}
+.cta__btn:hover { background: #D4A254; transform: translateY(-1px); }
+.cta__arrow { transition: transform 0.25s; }
+.cta__btn:hover .cta__arrow { transform: translateX(3px); }
+
+@media (max-width: 800px), (orientation: portrait) {
+  .cta__inner { top: 13.43%; }
+}
+
+/* ---- "Leave a message" view swap — clicking the button above
+   swaps this same box's content for a message slip instead of
+   opening a separate modal, so it reads as part of the room rather
+   than a browser-standard popup. ---- */
+.cta__view { display: none; }
+.cta__view.is-active { display: block; }
+
+.cta__view--form {
+  max-width: 380px;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: rgba(15, 11, 8, 0.7);
+  border: 1px solid var(--brass);
+  border-radius: var(--radius);
+  backdrop-filter: blur(2px);
+}
+
+.cta__form-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--line-on-dark);
+}
+.cta__form-back {
+  font-size: 1rem;
+  color: #D9CBB0;
+  margin-right: 0.2rem;
+  transition: color 0.2s;
+}
+.cta__form-back:hover { color: var(--paper); }
+.cta__form-brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  color: var(--brass);
+}
+.cta__form-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: #8A7C64;
+}
+
+.cta__field {
+  display: block;
+  margin-bottom: 1rem;
+}
+.cta__field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #B8A98C;
+  margin-bottom: 0.35rem;
+}
+.cta__field-input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-on-dark-strong);
+  padding: 0.35rem 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--paper);
+  transition: border-color 0.2s;
+}
+.cta__field-input::placeholder { color: #6b5f4d; }
+.cta__field-input:focus {
+  outline: none;
+  border-bottom-color: var(--brass);
+}
+.cta__field-input--area {
+  resize: vertical;
+  min-height: 4.5em;
+  line-height: 1.4;
+}
+
+.cta__form-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--brass);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius);
+  margin-top: 0.3rem;
+  transition: background 0.25s, transform 0.25s;
+}
+.cta__form-submit:hover { background: #D4A254; transform: translateY(-1px); }
+.cta__form-submit:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+.cta__form-status {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--brass);
+}
+
+/* Teléfono en vertical: el formulario usaba tamaños base (pensados
+   para desktop) y dentro de la pantallita del TV quedaba enorme —
+   "INCOMING MESSAGE" wrapeaba, los campos muy separados, el textarea
+   con rows="3". Se compacta todo. */
+@media (orientation: portrait) and (max-width: 599px) {
+  /* Subtítulo = mismo tamaño que el cuerpo del About en celular. */
+  .cta__subtitle { font-size: clamp(0.8rem, 4.5cqi, 1.5rem); }
+  .cta__view--form { max-width: 290px; padding: 0.85rem 1rem 1rem; }
+  .cta__form-head { margin-bottom: 0.6rem; padding-bottom: 0.45rem; gap: 0.35rem; }
+  .cta__form-brand { font-size: 0.68rem; letter-spacing: 0.06em; }
+  .cta__form-tag { font-size: 0.54rem; letter-spacing: 0.04em; }
+  .cta__field { margin-bottom: 0.6rem; }
+  .cta__field-label { font-size: 0.54rem; margin-bottom: 0.18rem; letter-spacing: 0.08em; }
+  .cta__field-input { font-size: 0.78rem; padding: 0.18rem 0.1rem; }
+  .cta__field-input--area { min-height: 0; height: 2.4em; }
+  .cta__form-submit { font-size: 0.68rem; padding: 0.5rem 0.9rem; }
+  .cta__form-status { margin-top: 0.55rem; font-size: 0.56rem; }
+}
+
+/* Tablet en vertical: el CTA (intro + formulario) estaba clavado en
+   tamaños de móvil y quedaba diminuto en la pantalla grande. Todo
+   escala ~+30% con cqi. */
+@media (orientation: portrait) and (min-width: 600px) {
+  .cta__title { font-size: clamp(2.6rem, 10.5cqi, 4.6rem); }
+  /* Mismo tamaño que el cuerpo del About (.about__line en tablet). */
+  .cta__subtitle { font-size: clamp(0.81rem, 4.7cqi, 1.58rem); margin-top: 0.8rem; }
+  .cta__actions { margin-top: clamp(1.6rem, 5cqi, 2.8rem); }
+  .cta__btn {
+    font-size: clamp(1rem, 3.1cqi, 1.5rem);
+    padding: clamp(0.9rem, 2.6cqi, 1.3rem) clamp(1.4rem, 4cqi, 2.1rem);
+  }
+
+  .cta__view--form {
+    max-width: clamp(380px, 64cqi, 520px);
+    padding: clamp(1.25rem, 4cqi, 2rem);
+  }
+  .cta__form-brand { font-size: clamp(0.9rem, 2.8cqi, 1.35rem); }
+  .cta__form-tag { font-size: clamp(0.78rem, 2.3cqi, 1.15rem); }
+  .cta__field { margin-bottom: clamp(1rem, 3.2cqi, 1.6rem); }
+  .cta__field-label { font-size: clamp(0.72rem, 2.1cqi, 1.05rem); }
+  .cta__field-input {
+    font-size: clamp(0.95rem, 2.9cqi, 1.4rem);
+    padding: clamp(0.35rem, 1.4cqi, 0.6rem) 0.1rem;
+  }
+  .cta__form-submit {
+    font-size: clamp(0.88rem, 2.6cqi, 1.3rem);
+    padding: clamp(0.75rem, 2.4cqi, 1.1rem) clamp(1.25rem, 3.6cqi, 1.9rem);
+  }
+  .cta__form-status { font-size: clamp(0.72rem, 2.1cqi, 1.05rem); }
+}
+
+/* ============================================================
+   FOOTER — the building at night.
+   ============================================================ */
+
+.footer {
+  background: #0F0B08;
+  justify-content: center; align-items: center;
+}
+
+.footer__content {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 49%;
+  transform: translate(-50%, -50%);
+  width: 44%; /* Notebook paper width */
+  padding: 0;
+  mix-blend-mode: multiply;
+  height: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+
+.footer__brand {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+.footer__sig {
+  display: block;
+  font-family: var(--font-hand);
+  font-weight: 700; /* mismo grosor que .footer__brand ("caller") de arriba, si no se pierde */
+  font-size: 0.9rem; /* -10%: la línea de copyright no debe salirse del cuaderno */
+  color: var(--ink-soft);
+  margin-top: 0.35rem;
+}
+
+
+/* Same handwritten voice as the Work corkboard note — the notepad
+   this column sits over gets its own "written" line, the links read
+   as what got jotted down underneath it. */
+.footer__leave {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+  color: var(--ink);
+  display: inline-block;
+  transform: rotate(-1.5deg);
+  margin-bottom: 0.15rem;
+}
+.footer__mail {
+  font-size: clamp(1.15rem, 2.3vw, 1.61rem);
+  font-family: var(--font-hand);
+  color: var(--ink);
+}
+
+
+
+.footer__link {
+  font-family: var(--font-hand);
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  color: var(--ink);
+}
+
+.work__board .section-head {
+  padding: 0;
+  margin-top: 8%;
+  margin-bottom: 0.5rem;
+  padding-left: 5%;
+  text-align: left;
+}
+
+
+.is-revealed .typewriter .type-char {
+  animation: type-char 0.05s ease both;
+  animation-delay: calc(var(--word-delay, 0.3s) + var(--delay));
+}
+@keyframes type-char {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+
+.footer__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12%;
+  flex-grow: 1;
+  align-items: center;
+}
+.footer__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 2rem;
+  transform: translateX(-15%);
+}
+.footer__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2rem;
+  transform: translateX(15%);
+}
+.footer__bottom {
+  text-align: right;
+  margin-top: 2rem;
+  padding-right: 15%;
+  margin-bottom: 10%;
+}
+
+.footer__link span { font-family: var(--font-hand); color: var(--ink); font-size: clamp(1.15rem, 2.3vw, 1.61rem); }
+
+
+
+.footer__leave { --word-delay: 0.3s; }
+.footer__left .footer__mail { --word-delay: 0.9s; }
+.footer__left .footer__link { --word-delay: 1.2s; }
+.footer__right .footer__mail { --word-delay: 1.6s; }
+.footer__right .footer__link { --word-delay: 1.9s; }
+.footer__bottom .footer__brand { --word-delay: 2.3s; }
+.footer__bottom .footer__sig { --word-delay: 2.6s; }
+
+@media (max-width: 800px), (orientation: portrait) {
+  /* The mobile notebook shot is tilted (its right edge sits higher
+     than its left) — rotating the whole block to match is what
+     makes the text read as written on the page, not pasted flat
+     over a tilted photo. */
+  .footer__content { transform: translate(-50%, -50%) rotate(-4deg); }
+  .footer__header { margin-top: 9vh; }
+  .footer__leave { font-size: clamp(1.25rem, 3.2vw, 1.7rem); }
+  .footer__mail { font-size: clamp(1.1rem, 2.4vw, 1.45rem); }
+  .footer__link, .footer__link span { font-size: clamp(1rem, 2.2vw, 1.35rem); }
+  /* Pushed cleanly apart so text never collides with the center pen */
+  .footer__left { transform: translateX(-30%); gap: 1.6rem; }
+  .footer__right { transform: translateX(18%); gap: 1.6rem; }
+  .footer__bottom { transform: translateX(40%) translateY(-3vh); }
+  /* Firma de copyright: solo en vertical (celular/tablet), -5% y 10%
+     a la derecha respecto de su propio lugar. */
+  .footer__sig { font-size: 0.771rem; transform: translateX(0%); } /* -5% mas y otro 5% a la izq. (solo celular) */
+}
+
+/* Solo teléfono: "Leave a message." (título del bloc) +10% y ~5% más
+   arriba. */
+@media (orientation: portrait) and (max-width: 599px) {
+  .footer__leave { font-size: clamp(1.38rem, 3.5vw, 1.87rem); }
+  .footer__header { margin-top: 8vh; }
+}
+
+/* Tablet en vertical: los textos del bloc escalan ~+30% con cqi
+   (estaban en tamaños de teléfono). "by Pablo Chavez" vuelve a su
+   posición (el +10% a la derecha es solo para el bloc del teléfono). */
+@media (orientation: portrait) and (min-width: 600px) {
+  .footer__leave { font-size: clamp(2rem, 6.3cqi, 3.15rem); }
+  .footer__mail { font-size: clamp(1.78rem, 5.3cqi, 2.53rem); }
+  .footer__link,
+  .footer__link span { font-size: clamp(1.67rem, 4.85cqi, 2.3rem); }
+  .footer__brand { font-size: clamp(1.78rem, 5.05cqi, 2.53rem); }
+  .footer__sig { font-size: clamp(1.22rem, 3.57cqi, 1.77rem); transform: translateX(10%); } /* -5% adicional */
+  .footer__bottom { transform: translateX(30%) translateY(-3vh); }
+}
+
+/* ============================================================
+   FOOTER TRACKING WRAPPER
+   Guarantees the text stays glued to the 16:9 notebook video
+   even on extreme aspect ratios (object-fit: cover emulation).
+   ============================================================ */
+.room__tracker {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.room__tracker > * {
+  pointer-events: auto;
+}
+
+/* ============================================================
+   CRT CATHODE PRELOADER (Tube Warm-up Ignition & Gradual Fade)
+   ============================================================ */
+.crt-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #060402;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none !important; /* Never blocks mouse or touch */
+  transition: opacity 1.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.crt-preloader__scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.4) 50%
+  );
+  background-size: 100% 4px;
+  opacity: 0.7;
+}
+
+.crt-preloader__beam {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 
+    0 0 15px #ffffff,
+    0 0 35px rgba(180, 220, 255, 0.9),
+    0 0 70px rgba(130, 180, 255, 0.6);
+  opacity: 0;
+  transform: translateZ(0);
+  pointer-events: none;
+}
+
+/* Stage 1: Beam ignites, expands and flashes white while screen stays black */
+.crt-preloader.is-igniting .crt-preloader__beam {
+  animation: crtWarmUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stage 2: ONLY after white flash ends, start the gradual analog dissolve */
+.crt-preloader.is-fading {
+  opacity: 0;
+}
+
+@keyframes crtWarmUp {
+  0% {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    opacity: 1;
+    transform: scale(1.3);
+  }
+  45% {
+    width: 100vw;
+    height: 2px;
+    border-radius: 0;
+    opacity: 1;
+    box-shadow: 
+      0 0 30px #ffffff,
+      0 0 60px rgba(220, 240, 255, 0.95),
+      0 0 100px rgba(160, 210, 255, 0.85);
+  }
+  75% {
+    width: 100vw;
+    height: 100vh;
+    opacity: 1;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: 0 0 120px #ffffff;
+  }
+  100% {
+    width: 100vw;
+    height: 100vh;
+    opacity: 0;
+    background: transparent;
+  }
+}
+
+.crt-preloader.is-done {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ============================================================
+   ROTATE-TO-PORTRAIT LOCK
+   Phones in landscape fall outside the mobile breakpoint and
+   the desktop layout collapses into a ~390px-tall strip.
+   The site is a guided experience inside a TV, so we just ask
+   for portrait rather than maintain a landscape-phone layout.
+   Gate: landscape + short viewport = a phone held sideways
+   (never a tablet, laptop or desktop).
+   ============================================================ */
+.rotate-lock {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #17110b;
+  color: var(--paper);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6vw;
+}
+.rotate-lock__inner {
+  max-width: 30rem;
+}
+.rotate-lock__icon {
+  color: var(--brass);
+  margin-bottom: 1.4rem;
+  animation: rotate-lock-nudge 2.4s var(--ease-in-out, ease-in-out) infinite;
+}
+.rotate-lock__arrow { stroke: var(--brass); }
+.rotate-lock__title {
+  font-family: 'Bevan', var(--font-display);
+  font-size: clamp(1.3rem, 5vw, 2rem);
+  letter-spacing: 0.04em;
+  margin: 0 0 0.5rem;
+}
+.rotate-lock__body {
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 3.2vw, 1rem);
+  color: var(--ink-faint);
+  margin: 0;
+}
+@keyframes rotate-lock-nudge {
+  0%, 55%, 100% { transform: rotate(0deg); }
+  70%, 85% { transform: rotate(-90deg); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .rotate-lock { display: flex; }
+}
+@media (orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
+  .rotate-lock__icon { animation: none; }
+}
+
+/* ============================================================
+   TABLET / MONITOR 4:3 (landscape, más cuadrado que el marco).
+   Va al final del archivo a propósito: necesita ganarle en
+   cascada a reglas base de .cta__inner / .about__copy que están
+   más abajo que el bloque 4:3 de arriba.
+   ============================================================ */
+@media (min-width: 800px) and (max-aspect-ratio: 3/2) and (orientation: landscape) {
+  /* About: misma esquina superior-izquierda que el texto del CTA,
+     pero en caja angosta para no superponerse con la foto. */
+  .about__copy {
+    position: absolute;
+    top: 15%;
+    left: 0;
+    right: auto;
+    width: 400px;
+    max-width: 46%;
+    margin-left: 0;
+    padding: 0 var(--gutter);
+    transform: none;
+  }
+  /* En apaisado hay espacio en la columna izquierda: se muestra la
+     frase que en vertical queda oculta (tapaba la cara). Mismo
+     tamaño que .about__line. */
+  .about__body {
+    display: block;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #D9CBB0;
+    margin-bottom: 0.6em;
+  }
+
+  /* Work: la hoja blanca de cada proyecto -7% (el texto no se toca). */
+  .work__note {
+    width: clamp(64.6px, 8.85vw, 88.35px);
+    height: clamp(64.6px, 8.85vw, 88.35px);
+  }
+
+  /* CTA: mismo top que el About. El panel del form se escala desde
+     su esquina superior-izquierda, así conserva margen izq. y arriba. */
+  .cta__inner { top: 15%; }
+  .cta__view--form {
+    transform: scale(0.78);
+    transform-origin: top left;
+    max-width: 420px;
+  }
+  .cta__field-input--area { min-height: 0; height: 2.4em; }
+
+  /* Footer: Instagram 10% a la derecha, WhatsApp 10% a la izquierda. */
+  .footer__left .footer__link { transform: translateX(10%); }
+  .footer__right .footer__wa { transform: translateX(-10%); }
+}
+
+/* ============================================================
+   ULTRAWIDE / GAMER (más ancho que 16:9 — 21:9, 32:9).
+   El marco se ajusta a lo alto y sobra ancho: el bloque del hero
+   queda perdido en la esquina inferior derecha. Se agranda el
+   texto y se trae hacia adentro (10% del alto/ancho de la pantalla
+   del TV, vía cqb/cqi). 16:9 normales (1.78) quedan afuera.
+   ============================================================ */
+@media (min-aspect-ratio: 19/10) and (min-width: 2200px) and (orientation: landscape) {
+  /* 10% relativo al propio bloque, no a la pantalla. */
+  .hero__signal { transform: translate(-10%, -10%); }
+  .hero__signal-title { font-size: 5.69rem; }
+  .hero__signal-line { font-size: 2.75rem; }
+
+  /* Work: el corcho es enorme en ultrawide y todo queda chico. Título
+     +55% y 10% a la derecha; tarjetas y nombres +55% (quedan en su
+     lugar: crecen desde su esquina, el ancla left/top no se mueve). */
+  .work__board .section-head__title { font-size: 6.24rem; transform: rotate(-1deg) translateX(10%); }
+  .work__note { width: 148px; height: 148px; }
+  .work__note-name { font-size: 1.02rem; }
+
+  /* System: hojas +10% (scale 0.9 -> 0.99) y textos +25%. */
+  .system__slot:nth-child(1) { transform: rotate(-1.6deg) translateY(7px) scale(0.99); }
+  .system__slot:nth-child(2) { transform: rotate(1.3deg) translateY(calc(-9px + 30%)) scale(0.99); }
+  .system__slot:nth-child(3) { transform: rotate(-2deg) translateY(3px) scale(0.99); }
+  .system__slot:nth-child(4) { transform: rotate(1.7deg) translateY(calc(-5px + 30%)) scale(0.99); }
+  .system__slot-num { font-size: 24.75px; }
+  .system__slot-title { font-size: 1.31rem; }
+  .system__slot-text { font-size: 1.13rem; }
+  .system__thread { transform: translateY(10%); }
+
+  /* About: bloque 20% más abajo y 10% a la derecha (base translateY(30%)
+     -> translate(10%, 50%)), y todo el texto más grande. */
+  .about__copy { transform: translate(10%, 50%); }
+  .about__title { font-size: 4.6rem; }
+  .about__intro { font-size: 2.64rem; } /* -5% */
+  .about__body,
+  .about__line,
+  .about__closing { font-size: 1.57rem; }
+
+  /* CTA: misma caja y tamaños que el About (mismo left/ancho, mismo
+     desplazamiento, título y subtítulo iguales). */
+  .cta__inner {
+    top: 20%;
+    left: 0;
+    right: auto;
+    max-width: 45%;
+    margin-left: 2vw;
+    padding: 0 var(--gutter);
+    transform: translateX(5%);
+  }
+  .cta__title { font-size: 4.6rem; }
+  .cta__subtitle { font-size: 1.57rem; }
+  .cta__btn { font-size: 1.43rem; padding: 1.2rem 1.85rem; }
+  /* Formulario +43% desde su esquina superior-izquierda. */
+  .cta__view--form { transform: scale(1.43); transform-origin: top left; }
+
+  /* Channels: título y subtítulo (nº de teléfono), +10% +20% +10%. */
+  .channel-card__title { font-size: 8.71rem; }
+  .channel-card__phone { font-size: 2.32rem; }
+
+  /* Footer: todos los textos +30% y luego +20% más. */
+  .footer__leave { font-size: 3.28rem; }
+  .footer__mail { font-size: 2.52rem; }
+  .footer__link { font-size: 2.18rem; }
+  .footer__link span { font-size: 2.52rem; }
+  .footer__brand { font-size: 1.87rem; }
+  .footer__sig { font-size: 1.4rem; } /* -10% */
+}
+
+/* ============================================================
+   LAPTOP / WIDESCREEN ANGOSTO (16:10 y similares, ~1.5–1.7).
+   Más alto que el marco 16:9 -> letterbox a los lados, la
+   pantalla del TV queda angosta y el texto en vw se ve grande.
+   Deja afuera 4:3 (<=1.5), 16:9 (~1.78) y ultrawide.
+   ============================================================ */
+@media (min-aspect-ratio: 3/2) and (max-aspect-ratio: 17/10) and (orientation: landscape) {
+  .hero__signal { transform: translateY(10%); }
+  .hero__signal-title { font-size: 3.65rem; }
+  .hero__signal-line { font-size: 2.03rem; }
+
+  /* About: bloque 10% más arriba y 10% a la derecha
+     (base translateY(30%) -> translate(10%, 20%)). */
+  .about__copy { transform: translate(10%, 26%); }
+  /* El "más luz" tras el intro no era el tamaño en sí, sino que los
+     huecos entre párrafos NO eran parejos (0.3rem entre el par
+     "Sometimes", 1rem en el resto). Ahora TODOS los huecos = 0.55rem;
+     el intro puede seguir siendo el lead (más grande y negrita) sin
+     desbalancear. */
+  .about__intro,
+  .about__body,
+  .about__line,
+  .about__line:last-of-type,
+  .about__closing {
+    line-height: 1.55;
+    margin-bottom: 0.55rem;
+  }
+  .about__body,
+  .about__line { font-size: 0.95rem; color: #D9CBB0; }
+  .about__intro { font-size: 1.43rem; font-weight: 600; color: #D9CBB0; } /* -5%, apagado */
+  .about__closing { font-size: 0.95rem; color: var(--paper); margin-bottom: 0; }
+
+  /* "SCROLL" parpadeante: -10% en todas las salas. */
+  .room__scroll-nudge { font-size: clamp(1.26rem, 2.5vw, 1.98rem); }
+
+  /* Channels: solo el título -10%. */
+  .channel-card__title { font-size: clamp(2.48rem, 6.75vw, 5.4rem); }
+}
+
+/* ============================================================
+   MONITOR 16:9 GRANDE (~1.7–1.9 y >= 2200px de ancho).
+   El aspect ratio solo no alcanza: una ventana de ~1728px (la Mac
+   de Pablo, donde se diseñó la base) también es ~16:9 pero NO
+   necesita agrandar nada. El min-width la deja usar la base; solo
+   los monitores de verdad grandes (2560+) entran acá.
+   ============================================================ */
+@media (min-aspect-ratio: 17/10) and (max-aspect-ratio: 19/10) and (min-width: 2200px) and (orientation: landscape) {
+  /* Punto de partida: los mismos valores que el bucket ultrawide
+     (la pantalla del TV se renderiza casi igual en 16:9 y en 21:9).
+     Desde acá se ajusta sala por sala lo que haga falta. */
+  .hero__signal { transform: translate(-10%, -10%); }
+  .hero__signal-title { font-size: 5.69rem; }
+  .hero__signal-line { font-size: 2.75rem; }
+
+  .work__board .section-head__title { font-size: 6.24rem; transform: rotate(-1deg) translateX(10%); }
+  .work__note { width: 148px; height: 148px; }
+  .work__note-name { font-size: 1.02rem; }
+
+  .system__slot:nth-child(1) { transform: rotate(-1.6deg) translateY(7px) scale(0.99); }
+  .system__slot:nth-child(2) { transform: rotate(1.3deg) translateY(calc(-9px + 30%)) scale(0.99); }
+  .system__slot:nth-child(3) { transform: rotate(-2deg) translateY(3px) scale(0.99); }
+  .system__slot:nth-child(4) { transform: rotate(1.7deg) translateY(calc(-5px + 30%)) scale(0.99); }
+  .system__slot-num { font-size: 24.75px; }
+  .system__slot-title { font-size: 1.31rem; }
+  .system__slot-text { font-size: 1.13rem; }
+  .system__thread { transform: translateY(10%); }
+
+  .about__copy { transform: translate(10%, 50%); }
+  .about__title { font-size: 4.6rem; }
+  .about__intro { font-size: 2.64rem; } /* -5% */
+  .about__body,
+  .about__line,
+  .about__closing { font-size: 1.57rem; }
+
+  .cta__inner {
+    top: 20%;
+    left: 0;
+    right: auto;
+    max-width: 45%;
+    margin-left: 2vw;
+    padding: 0 var(--gutter);
+    transform: translateX(5%);
+  }
+  .cta__title { font-size: 4.6rem; }
+  .cta__subtitle { font-size: 1.57rem; }
+  .cta__btn { font-size: 1.43rem; padding: 1.2rem 1.85rem; }
+  .cta__view--form { transform: scale(1.43); transform-origin: top left; }
+
+  .channel-card__title { font-size: 8.71rem; }
+  .channel-card__phone { font-size: 2.32rem; }
+
+  .footer__leave { font-size: 3.28rem; }
+  .footer__mail { font-size: 2.52rem; }
+  .footer__link { font-size: 2.18rem; }
+  .footer__link span { font-size: 2.52rem; }
+  .footer__brand { font-size: 1.87rem; }
+  .footer__sig { font-size: 1.4rem; } /* -10% */
+}

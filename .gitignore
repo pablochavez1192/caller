@@ -1,0 +1,10 @@
+# dependencias
+node_modules/
+
+# artefactos de build (se regeneran con el script de build — ver Fase 2)
+dist/
+*.zip
+
+# macOS
+.DS_Store
+**/.DS_Store

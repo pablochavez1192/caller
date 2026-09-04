@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Analytics: Cloudflare Web Analytics (sin cookies, sin datos personales,
+     medido en el proxy — no hay script en la página). -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#1a130d" />
+<meta name="apple-mobile-web-app-title" content="Caller" />
+<meta name="application-name" content="Caller" />
+
+<title>Pablo Chavez · Web Designer & Developer</title>
+<meta name="description" content="I build sites and systems that bring you clients, even when you're not around. Freelance, based in Spain, available for remote work worldwide." />
+<meta name="keywords" content="web designer, web developer, interactive websites, frontend developer Spain, Pablo Chavez, Caller, callersignal, freelance web design" />
+<meta name="author" content="Pablo Chavez" />
+<meta name="copyright" content="© 2026 Pablo Chávez — All rights reserved" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://callersignal.com/" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:locale:alternate" content="es_ES" />
+<meta property="og:url" content="https://callersignal.com/" />
+<meta property="og:site_name" content="Caller" />
+<meta property="og:title" content="Pablo Chavez · Freelance Web Designer & Developer" />
+<meta property="og:description" content="I build sites and systems that bring you clients, even when you're not around. Freelance, based in Spain, available for remote work worldwide." />
+<meta property="og:image" content="https://callersignal.com/SEO.jpg" />
+<meta property="og:image:secure_url" content="https://callersignal.com/SEO.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Pablo Chavez — Caller" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Pablo Chavez · Freelance Web Designer & Developer" />
+<meta name="twitter:description" content="I build sites and systems that bring you clients, even when you're not around. Freelance, based in Spain, available for remote work worldwide." />
+<meta name="twitter:image" content="https://callersignal.com/SEO.jpg" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://callersignal.com/#pablo",
+      "name": "Pablo Chavez",
+      "url": "https://callersignal.com/",
+      "image": "https://callersignal.com/assets/buildings/building-6.webp",
+      "jobTitle": "Creative Developer & Web Designer",
+      "description": "Creative developer and web designer crafting interactive digital experiences and bespoke web platforms.",
+      "address": { "@type": "PostalAddress", "addressCountry": "ES" },
+      "knowsAbout": [
+        "Creative Development", "Web Design", "Interactive Websites",
+        "Frontend Development", "JavaScript", "HTML", "CSS", "GSAP",
+        "Bespoke Web Platforms", "Lead Generation Systems", "UX/UI Design"
+      ],
+      "knowsLanguage": ["en", "es"],
+      "worksFor": { "@id": "https://callersignal.com/#caller" }
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://callersignal.com/#caller",
+      "name": "Caller",
+      "alternateName": "Caller by Pablo Chavez",
+      "url": "https://callersignal.com/",
+      "logo": "https://callersignal.com/assets/buildings/building-1.webp",
+      "image": "https://callersignal.com/assets/buildings/building-1.webp",
+      "description": "Creative studio crafting interactive digital experiences, high-converting websites, and bespoke web platforms.",
+      "founder": { "@id": "https://callersignal.com/#pablo" },
+      "areaServed": [
+        { "@type": "Country", "name": "Spain" },
+        { "@type": "Place", "name": "Remote Worldwide" }
+      ],
+      "serviceType": [
+        "Creative Web Development", "Web Design", "Interactive Experiences",
+        "Bespoke Digital Platforms", "Conversion Systems"
+      ],
+      "address": { "@type": "PostalAddress", "addressCountry": "ES" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://callersignal.com/#website",
+      "url": "https://callersignal.com/",
+      "name": "Caller — Pablo Chavez",
+      "description": "Portfolio of Pablo Chavez. Creative developer and web designer.",
+      "publisher": { "@id": "https://callersignal.com/#pablo" },
+      "inLanguage": ["en-US", "es-ES"]
+    }
+  ]
+}
+</script>
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<link rel="preload" as="image" href="assets/tv/tv.webp" media="(min-width: 801px) and (orientation: landscape)" fetchpriority="high" />
+<link rel="preload" as="image" href="assets/tv/phone.webp" media="(max-width: 800px), (orientation: portrait)" fetchpriority="high" />
+<link rel="preload" as="image" href="assets/tv/madera.webp" fetchpriority="high" />
+<link rel="preload" as="image" href="rooms/frames/to-work/f0001.webp" media="(min-width: 801px) and (orientation: landscape)" fetchpriority="high" />
+<link rel="preload" as="image" href="rooms/frames/to-work-mobile/f0001.webp" media="(max-width: 800px), (orientation: portrait)" fetchpriority="high" />
+
+<!-- Fotos fijas de cada sala (fallback bajo el canvas). Chicas y se
+     precargan para que un clic en los botones del TV sea instantáneo
+     sin esperar la secuencia de frames de la caminata. Landscape y
+     portrait separados por media. -->
+<link rel="preload" as="image" href="assets/buildings/building-4.webp" media="(orientation: landscape)" />
+<link rel="preload" as="image" href="assets/buildings/building-5.webp" media="(orientation: landscape)" />
+<link rel="preload" as="image" href="assets/buildings/building-6.webp" media="(orientation: landscape)" />
+<link rel="preload" as="image" href="assets/buildings/building-7.webp" media="(orientation: landscape)" />
+<link rel="preload" as="image" href="assets/buildings/building-8.webp" media="(orientation: landscape)" />
+<link rel="preload" as="image" href="assets/buildings/building-4c.webp" media="(orientation: portrait)" />
+<link rel="preload" as="image" href="assets/buildings/building-5c.webp" media="(orientation: portrait)" />
+<link rel="preload" as="image" href="assets/buildings/building-6c.webp" media="(orientation: portrait)" />
+<link rel="preload" as="image" href="assets/buildings/building-7c.webp" media="(orientation: portrait)" />
+<link rel="preload" as="image" href="assets/buildings/building-8c.webp" media="(orientation: portrait)" />
+
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta-var.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/bevan-400.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/spacemono-700.woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=1">
+
+<link rel="stylesheet" href="styles.css?v=138" />
+</head>
+<body class="is-paginated">
+
+<!-- ============ CRT TUBE PRELOADER (Warm-up Ignition) ============ -->
+<div id="crt-preloader" class="crt-preloader" aria-hidden="true">
+  <div class="crt-preloader__scanlines"></div>
+  <div class="crt-preloader__beam"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="tv-warp-filter" x="-50%" y="-50%" width="200%" height="200%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.007 0.038" numOctaves="1" seed="4" result="tv-warp-noise" />
+      <feDisplacementMap in="SourceGraphic" in2="tv-warp-noise" scale="35" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+</svg>
+
+<div class="tv-backdrop" aria-hidden="true"></div>
+
+<!-- ============ TV FRAME — sized to its real 1672:941 aspect
+     ratio always, centered, never stretched. Contains both the
+     physical control panel and the screen (the actual site). ============ -->
+<div class="tv-frame">
+  <div class="tv-controls" id="tv-controls">
+    <button class="tv-knob tv-knob--small" id="tv-lang-knob" type="button" aria-label="Toggle language">
+      <img class="tv-knob__base" src="assets/tv/lang1.webp" alt="" draggable="false" />
+      <img class="tv-knob__cap" src="assets/tv/lang2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-knob" id="tv-channel" type="button" aria-label="Change channel">
+      <img class="tv-knob__base" src="assets/tv/channel1.webp" alt="" draggable="false" />
+      <img class="tv-knob__cap" src="assets/tv/channel2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-btn" id="tv-work" type="button" data-goto="1" aria-label="Work">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/work1.webp" alt="" draggable="false" />
+      <img class="tv-btn__img tv-btn__img--down" src="assets/tv/work2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-btn" id="tv-about" type="button" data-goto="3" aria-label="About">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/about1.webp" alt="" draggable="false" />
+      <img class="tv-btn__img tv-btn__img--down" src="assets/tv/about2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-btn" id="tv-contact" type="button" data-goto="5" aria-label="Contact">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/contact1.webp" alt="" draggable="false" />
+      <img class="tv-btn__img tv-btn__img--down" src="assets/tv/contact2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-btn" id="tv-reset" type="button" data-goto="0" aria-label="Home">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/reset1.webp" alt="" draggable="false" />
+      <img class="tv-btn__img tv-btn__img--down" src="assets/tv/reset2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-music" id="tv-music" type="button" aria-label="Toggle music">
+      <span class="tv-music__glow tv-music__glow--red"></span>
+      <span class="tv-music__glow tv-music__glow--green"></span>
+      <img class="tv-music__img" src="assets/tv/music.webp" alt="" draggable="false" />
+    </button>
+  </div>
+
+<!-- ============ TV SCREEN — everything below lives INSIDE the
+     television's screen cutout, scaled to its real size, not
+     stretched full-bleed behind the frame. ============ -->
+<div class="tv-screen">
+<canvas class="tv-static" id="tv-static" aria-hidden="true"></canvas>
+<div class="tv-warp-lens" id="tv-warp-lens" aria-hidden="true"></div>
+<div class="tv-glitch-line" aria-hidden="true"></div>
+
+<!-- ============ DOT NAV (desktop deck mode only) ============ -->
+<nav class="deck-dots" id="deck-dots" aria-label="Slide navigation">
+  <button class="deck-dots__item is-active" data-goto="0" aria-label="Lobby"></button>
+  <button class="deck-dots__item" data-goto="1" aria-label="Work"></button>
+  <button class="deck-dots__item" data-goto="2" aria-label="System"></button>
+  <button class="deck-dots__item" data-goto="3" aria-label="Behind"></button>
+  <button class="deck-dots__item" data-goto="4" aria-label="Channel"></button>
+  <button class="deck-dots__item" data-goto="5" aria-label="Footer"></button>
+</nav>
+
+<!-- ============ DECK ============ -->
+<div class="deck is-paginated" id="deck">
+
+  <!-- SLIDE 0 — HERO / Lobby -->
+  <section class="deck__slide room room--dark hero is-active" id="hero">
+    <div class="room__tilt">
+      <!-- No separate "home" photo — resting here just shows the
+           walk sequence's own first frame, as a plain still. Scrubbing
+           forward hard-cuts to the real (interactive) one in the work
+           slide; this is only ever a static poster. Portrait gets the
+           actual vertical-shot frame, not the landscape one cropped
+           into a tall box. -->
+      <picture>
+        <source media="(orientation: portrait)" srcset="rooms/frames/to-work-mobile/f0001.webp">
+        <img class="room__video" src="rooms/frames/to-work/f0001.webp" alt="" />
+      </picture>
+    </div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+
+    <div class="hero__content room__content">
+      <p class="hero__signal">
+        <span class="hero__signal-title" data-i18n="hero.signal">YOUR SIGNAL</span>
+        <span class="hero__signal-line" data-i18n="hero.signalLine">on the line</span>
+      </p>
+    </div>
+
+      </section>
+
+  <!-- SLIDE 1 — WORK / switchboard room -->
+  <section class="deck__slide room room--dark work" id="projects">
+    <div class="room__tilt">
+      <picture>
+        <source media="(max-width: 800px), (orientation: portrait)" srcset="assets/buildings/building-4c.webp">
+        <img class="room__photo" src="assets/buildings/building-4.webp" alt="Sala de la centralita, con un corcho de mensajes en la pared" />
+      </picture>
+      <canvas class="room__video" data-frame-canvas data-frames-base="rooms/frames/to-work" data-frames-count="121" data-frames-base-mobile="rooms/frames/to-work-mobile" data-frames-count-mobile="65" data-hop-duration-mobile="3.2"></canvas>
+    </div>
+    <div class="room__scrim" aria-hidden="true" style="background:linear-gradient(180deg, rgba(15,11,8,.35), transparent 30%, transparent 70%, rgba(15,11,8,.55));"></div>
+    <div class="room__tracker">
+
+    <div class="work__board room__content reveal-on-settle" id="work-board">
+      <div class="section-head">
+        <h2 class="section-head__title section-head__title--hand" data-i18n="projects.title">Selected work.</h2>
+      </div>
+      <div class="work__cards-grid" id="work-cards-grid"></div>
+
+      <div class="work__detail" id="work-detail" aria-hidden="true">
+        <!-- Top Dossier Header Bar -->
+        <div class="work__detail-header">
+          <div class="work__detail-meta-tag">
+            <span class="work__detail-tag-dot"></span>
+            <span id="work-detail-index">EXP. 01 / 08</span>
+          </div>
+          <div class="work__detail-nav">
+            <button type="button" class="work__detail-nav-btn" id="work-detail-prev" aria-label="Previous project">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              <span data-i18n="projects.prev">Prev</span>
+            </button>
+            <button type="button" class="work__detail-nav-btn" id="work-detail-next" aria-label="Next project">
+              <span data-i18n="projects.next">Next</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <button type="button" class="work__detail-close" id="work-detail-close" aria-label="Close">&times;</button>
+        </div>
+
+        <!-- Scrollable Dossier Content -->
+        <div class="work__detail-scroll" id="work-detail-scroll">
+          
+          <!-- Hero Section: Video / Mockup + Core Info -->
+          <div class="work__detail-hero">
+            <div class="work__detail-media">
+              <div class="work__detail-frame">
+                <div class="work__detail-frame-bar">
+                  <span class="work__detail-frame-dot"></span>
+                  <span class="work__detail-frame-dot"></span>
+                  <span class="work__detail-frame-dot"></span>
+                  <span class="work__detail-frame-url" id="work-detail-frame-url">caller://case-study</span>
+                </div>
+                <div class="work__detail-video-wrap">
+                  <video class="work__detail-video" id="work-detail-video" playsinline muted loop preload="metadata"></video>
+                  <div class="work__detail-media-placeholder" id="work-detail-media-placeholder">
+                    <span class="work__detail-media-label">PREVIEW</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="work__detail-intro">
+              <div class="work__detail-badges">
+                <span class="work__detail-category" id="work-detail-category">CATEGORY</span>
+                <span class="work__detail-year" id="work-detail-year">2024</span>
+              </div>
+              <h3 class="work__detail-name" id="work-detail-name">PROJECT</h3>
+              <p class="work__detail-desc" id="work-detail-desc">Description goes here.</p>
+              
+              <!-- Key Metric Stats Pills -->
+              <div class="work__detail-stats" id="work-detail-stats"></div>
+
+              <div class="work__detail-actions">
+                <a class="work__detail-link" id="work-detail-link" href="#" target="_blank" rel="noopener">
+                  <span data-i18n="projects.visit">Visit live site</span> &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: The Challenge & The Solution -->
+          <div class="work__detail-section work__detail-case">
+            <div class="work__detail-case-card work__detail-case-card--challenge">
+              <h4 class="work__detail-section-title" data-i18n="projects.challengeTitle">The Challenge</h4>
+              <p class="work__detail-case-text" id="work-detail-challenge">Challenge description...</p>
+            </div>
+            <div class="work__detail-case-card work__detail-case-card--solution">
+              <h4 class="work__detail-section-title" data-i18n="projects.solutionTitle">The Solution</h4>
+              <p class="work__detail-case-text" id="work-detail-solution">Solution description...</p>
+            </div>
+          </div>
+
+          <!-- Section: Key Deliverables & Scope -->
+          <div class="work__detail-section">
+            <h4 class="work__detail-section-title" data-i18n="projects.deliverablesTitle">Key Deliverables & Scope</h4>
+            <ul class="work__detail-deliverables" id="work-detail-deliverables"></ul>
+          </div>
+
+          <!-- Section: Color System (Large cards with HEX + click to copy) -->
+          <div class="work__detail-section">
+            <div class="work__detail-section-head">
+              <h4 class="work__detail-section-title" data-i18n="projects.paletteTitle">Color System & Identity</h4>
+              <span class="work__detail-section-hint" data-i18n="projects.copyHint">Click any swatch to copy HEX</span>
+            </div>
+            <div class="work__detail-palette-grid" id="work-detail-palette"></div>
+          </div>
+
+          <!-- Section: Typography & Brand Specs -->
+          <div class="work__detail-section">
+            <h4 class="work__detail-section-title" data-i18n="projects.typographyTitle">Typography & Art Direction</h4>
+            <div class="work__detail-type-grid" id="work-detail-typography"></div>
+          </div>
+
+          <!-- Section: Tech Stack & Architecture -->
+          <div class="work__detail-section">
+            <h4 class="work__detail-section-title" data-i18n="projects.stackTitle">Tech Stack & Architecture</h4>
+            <div class="work__detail-stack-groups" id="work-detail-stack"></div>
+          </div>
+
+          <!-- Bottom Footer Navigation -->
+          <div class="work__detail-footer">
+            <button type="button" class="work__detail-footer-btn" id="work-detail-footer-prev">
+              &larr; <span id="work-detail-footer-prev-name">Previous project</span>
+            </button>
+            <button type="button" class="work__detail-footer-btn" id="work-detail-footer-next">
+              <span id="work-detail-footer-next-name">Next project</span> &rarr;
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <span class="work__caption room__content"><strong id="work-current">01</strong> / <span id="work-total">08</span> · <span data-i18n="projects.hint">PINNED TO THE BOARD</span></span>
+    <button type="button" class="room__scroll-nudge" data-slide="1" data-i18n="hero.signalLine" aria-label="Scroll to next section">SCROLL ↓</button>
+  </section>
+
+  <!-- SLIDE 2 — SYSTEM / relay room -->
+  <section class="deck__slide room room--dark system" id="system">
+    <div class="room__tilt">
+      <picture>
+        <source media="(max-width: 800px), (orientation: portrait)" srcset="assets/buildings/building-5c.webp">
+        <img class="room__photo" src="assets/buildings/building-5.webp" alt="Sala de relés, con un tablero de estado de líneas de 4 casilleros" />
+      </picture>
+      <canvas class="room__video" data-frame-canvas data-frames-base="rooms/frames/to-system" data-frames-count="49" data-frames-base-mobile="rooms/frames/to-system-mobile" data-frames-count-mobile="49"></canvas>
+    </div>
+    <div class="room__scrim" aria-hidden="true" style="background:linear-gradient(180deg, rgba(15,11,8,.4), transparent 25%);"></div>
+    <div class="room__tracker">
+
+
+
+    <ol class="system__board room__content reveal-on-settle">
+      <li class="system__slot">
+        <span class="system__slot-num">01</span>
+        <h4 class="system__slot-title" data-i18n="system.n1t">No call missed</h4>
+        <p class="system__slot-text" data-i18n="system.n1d">Read your audience. Find what's losing you clients.</p>
+      </li>
+      <li class="system__slot">
+        <span class="system__slot-num">02</span>
+        <h4 class="system__slot-title" data-i18n="system.n2t">No lead lost</h4>
+        <p class="system__slot-text" data-i18n="system.n2d">Turn that into a site that pushes one clear action.</p>
+      </li>
+      <li class="system__slot">
+        <span class="system__slot-num">03</span>
+        <h4 class="system__slot-title" data-i18n="system.n3t">No message unseen</h4>
+        <p class="system__slot-text" data-i18n="system.n3d">Wire it to capture, respond and route — no backend needed.</p>
+      </li>
+      <li class="system__slot">
+        <span class="system__slot-num">04</span>
+        <h4 class="system__slot-title" data-i18n="system.n4t">No client forgotten</h4>
+        <p class="system__slot-text" data-i18n="system.n4d">Measure the response. Tune. Repeat.</p>
+      </li>
+      <li class="system__thread" aria-hidden="true">
+        <svg viewBox="0 0 708.17 270.86">
+          <polyline class="system__thread-seg system__thread-seg--1" points="30.8,99.7 263.7,134.1" />
+          <polyline class="system__thread-seg system__thread-seg--2" points="263.7,134.1 443.5,90.6" />
+          <polyline class="system__thread-seg system__thread-seg--3" points="443.5,90.6 675.2,143.3" />
+        </svg>
+      </li>
+    </ol>
+
+    <div class="system__mobile-nav reveal-on-settle" id="system-mobile-nav" aria-hidden="true">
+      <div class="system__mobile-dots" id="system-mobile-dots">
+        <span class="system__mobile-dot is-active"></span>
+        <span class="system__mobile-dot"></span>
+        <span class="system__mobile-dot"></span>
+        <span class="system__mobile-dot"></span>
+      </div>
+      <span class="system__mobile-hint" data-i18n="system.tap">Tap for next →</span>
+    </div>
+    </div>
+    <button type="button" class="room__scroll-nudge" data-slide="2" data-i18n="hero.signalLine" aria-label="Scroll to next section">SCROLL ↓</button>
+  </section>
+
+  <!-- SLIDE 3 — ABOUT / Pablo's office -->
+  <section class="deck__slide room room--dark about" id="about">
+    <div class="room__tilt">
+      <picture>
+        <source media="(max-width: 800px), (orientation: portrait)" srcset="assets/buildings/building-6c.webp">
+        <img class="room__photo" src="assets/buildings/building-6.webp" alt="Pablo Chavez sentado en su oficina con un teléfono retro" />
+      </picture>
+      <canvas class="room__video" data-frame-canvas data-frames-base="rooms/frames/to-about" data-frames-count="61" data-frames-base-mobile="rooms/frames/to-about-mobile" data-frames-count-mobile="90" data-hop-duration="2.2" data-hop-duration-mobile="3.0" data-hop-ease="none" data-hop-ease-mobile="none"></canvas>
+    </div>
+    <div class="room__scrim" aria-hidden="true" style="background:linear-gradient(90deg, rgba(15,11,8,.62) 0%, rgba(15,11,8,.18) 45%, transparent 60%);"></div>
+    <div class="room__tracker">
+
+    <div class="about__copy room__content reveal-on-settle">
+      <h2 class="about__title" data-i18n="about.title">Not a bot.</h2>
+      <p class="about__intro" data-i18n="about.intro">I've spent five years building websites, online stores and digital products.</p>
+      <p class="about__body" data-i18n="about.body">I make the design decisions and I write the code that ships — one person, start to finish.</p>
+      <p class="about__line" data-i18n="about.line1">Sometimes they come out just like you pictured.</p>
+      <p class="about__line" data-i18n="about.line2">Other times, not at all.</p>
+      <p class="about__closing" data-i18n="about.closing">That's when it gets interesting.</p>
+    </div>
+    </div>
+    <button type="button" class="room__scroll-nudge room__scroll-nudge--about" data-slide="3" data-i18n="hero.signalLine" aria-label="Scroll to next section">SCROLL ↓</button>
+  </section>
+
+  <!-- SLIDE 4 — CTA / desk phone -->
+  <section class="deck__slide room room--dark cta" id="contact">
+    <div class="room__tilt">
+      <picture>
+        <source media="(max-width: 800px), (orientation: portrait)" srcset="assets/buildings/building-7c.webp">
+        <img class="room__photo" src="assets/buildings/building-7.webp" alt="Teléfono retro descolgado sobre un escritorio de madera" />
+      </picture>
+      <canvas class="room__video" data-frame-canvas data-frames-base="rooms/frames/to-contact" data-frames-count="192" data-frames-base-mobile="rooms/frames/to-contact-mobile" data-frames-count-mobile="96" data-hop-duration="7.0" data-hop-duration-mobile="7.0" data-hop-ease="none" data-hop-ease-mobile="none"></canvas>
+    </div>
+    <div class="room__scrim" aria-hidden="true" style="background:linear-gradient(90deg, rgba(15,11,8,.7) 0%, rgba(15,11,8,.2) 55%, transparent 75%);"></div>
+    <div class="room__tracker">
+
+    <div class="cta__inner room__content reveal-on-settle" id="cta-inner">
+
+      <div class="cta__view cta__view--intro is-active" id="cta-view-intro">
+        <h2 class="cta__title" data-i18n="cta.title">Empty desk.<br/><span class="cta__accent">Open line.</span></h2>
+        <p class="cta__subtitle" data-i18n="cta.subtitle">I'm probably somewhere building something.</p>
+
+        <div class="cta__actions">
+          <button type="button" class="cta__btn" id="cta-open-form">
+            <span class="cta__label" data-i18n="cta.btn">Start the call.</span>
+            <span class="cta__arrow">→</span>
+          </button>
+        </div>
+      </div>
+
+      <form class="cta__view cta__view--form" id="cta-form" novalidate>
+        <input type="hidden" name="access_key" value="7572b942-8fef-4c2b-a559-885c7d421283" />
+        <!-- Honeypot anti-bots (Web3Forms lo descarta si viene marcado) -->
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none" />
+
+        <div class="cta__form-head">
+          <button type="button" class="cta__form-back" id="cta-close-form" aria-label="Back">←</button>
+          <span class="cta__form-brand">CALLER</span>
+          <span class="cta__form-tag">/ INCOMING MESSAGE</span>
+        </div>
+
+        <label class="cta__field">
+          <span class="cta__field-label" data-i18n="cta.name">NAME</span>
+          <input class="cta__field-input" type="text" name="name" autocomplete="name" required />
+        </label>
+
+        <label class="cta__field">
+          <span class="cta__field-label" data-i18n="cta.email">EMAIL</span>
+          <input class="cta__field-input" type="email" name="email" autocomplete="email" required />
+        </label>
+
+        <label class="cta__field">
+          <span class="cta__field-label" data-i18n="cta.message">WHAT'S ON YOUR MIND?</span>
+          <textarea class="cta__field-input cta__field-input--area" name="message" rows="3" required></textarea>
+        </label>
+
+        <button type="submit" class="cta__form-submit">
+          <span data-i18n="cta.send">SEND MESSAGE</span> <span class="cta__arrow">→</span>
+        </button>
+
+        <div class="cta__form-status" id="cta-form-status" data-i18n="cta.statusReady">STATUS: READY</div>
+      </form>
+
+    </div>
+    </div>
+    <button type="button" class="room__scroll-nudge room__scroll-nudge--cta" data-slide="4" data-i18n="hero.signalLine" aria-label="Scroll to next section">SCROLL ↓</button>
+  </section>
+
+  <!-- SLIDE 5 — FOOTER / building at night -->
+  <footer class="deck__slide room room--dark footer" id="footer-slide">
+    <div class="room__tilt">
+      <picture>
+        <source media="(max-width: 800px), (orientation: portrait)" srcset="assets/buildings/building-8c.webp">
+        <img class="room__photo" src="assets/buildings/building-8.webp" alt="Libreta de anotaciones con lapicera" />
+      </picture>
+      <canvas class="room__video" data-frame-canvas data-frames-base="rooms/frames/to-footer" data-frames-count="49" data-frames-base-mobile="rooms/frames/to-footer-mobile" data-frames-count-mobile="49" data-hop-duration-mobile="1.6"></canvas>
+    </div>
+    
+
+    <div class="room__tracker">
+    <div class="footer__content room__content reveal-on-settle">
+      <div class="footer__header">
+        <span class="footer__leave typewriter" data-i18n="footer.leave">Leave a message.</span>
+      </div>
+
+      <div class="footer__grid">
+        <div class="footer__left">
+          <a class="footer__mail typewriter" data-i18n="footer.email" href="mailto:pablo@callersignal.com">Email</a>
+          <a class="footer__link typewriter" data-i18n="footer.ig" href="https://instagram.com/pablojjch" target="_blank" rel="noopener">Instagram</a>
+        </div>
+
+        <div class="footer__right">
+          <a class="footer__mail footer__wa typewriter" data-i18n="footer.wa" href="https://wa.me/34632277090?text=Hi!%20I%27d%20like%20us%20to%20build%20something%20together." target="_blank" rel="noopener">WhatsApp</a>
+          <a class="footer__link typewriter" data-i18n="footer.li" href="https://www.linkedin.com/in/pablojjch/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span class="footer__brand typewriter" data-i18n="footer.caller">caller</span>
+        <span class="footer__sig typewriter" data-i18n="footer.by">© 2026 Pablo Chávez</span>
+      </div>
+    </div>
+    </div>
+  </footer>
+
+</div>
+<!-- ============ /DECK ============ -->
+
+<!-- ============ CHANNEL VIEW — the 5 commercial parodies. Hidden
+     until the Channel knob is turned; takes over from the deck,
+     which fades out underneath (body.is-watching-channel). ============ -->
+<div class="channel-view" id="channel-view">
+  <div class="channel-frame">
+    <video class="channel-view__video is-active" data-channel="0" data-poster="channels/posters/4" poster="channels/posters/4.webp" muted playsinline loop preload="none">
+      <source media="(orientation: portrait)" src="channels/4c.mp4?v=1">
+      <source src="channels/4.mp4?v=1">
+    </video>
+    <video class="channel-view__video" data-channel="1" data-poster="channels/posters/2" poster="channels/posters/2.webp" muted playsinline loop preload="none">
+      <source media="(orientation: portrait)" src="channels/2c.mp4?v=1">
+      <source src="channels/2.mp4?v=1">
+    </video>
+    <video class="channel-view__video" data-channel="2" data-poster="channels/posters/3" poster="channels/posters/3.webp" muted playsinline loop preload="none">
+      <source media="(orientation: portrait)" src="channels/3c.mp4?v=1">
+      <source src="channels/3.mp4?v=1">
+    </video>
+    <video class="channel-view__video" data-channel="3" data-poster="channels/posters/1" poster="channels/posters/1.webp" muted playsinline loop preload="none">
+      <source media="(orientation: portrait)" src="channels/1c.mp4?v=1">
+      <source src="channels/1.mp4?v=1">
+    </video>
+    <video class="channel-view__video" data-channel="4" data-poster="channels/posters/5" poster="channels/posters/5.webp" muted playsinline loop preload="none">
+      <source media="(orientation: portrait)" src="channels/5c.mp4?v=1">
+      <source src="channels/5.mp4?v=1">
+    </video>
+  </div>
+  <div class="channel-card" id="channel-card">
+    <span class="channel-card__title" id="channel-card-title" data-i18n="channel.vet">MORE PATIENTS</span>
+    <span class="channel-card__phone" data-i18n="channel.phone">0-800-CALLER</span>
+  </div>
+</div>
+<!-- ============ /CHANNEL VIEW ============ -->
+
+</div>
+<!-- ============ /TV SCREEN ============ -->
+
+</div>
+<!-- ============ /TV FRAME ============ -->
+
+<!-- ============ ROTATE-TO-PORTRAIT LOCK (phones in landscape) ============ -->
+<div class="rotate-lock" aria-hidden="true">
+  <div class="rotate-lock__inner">
+    <div class="rotate-lock__icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="20" y="6" width="24" height="52" rx="4" />
+        <line x1="20" y1="48" x2="44" y2="48" />
+        <path class="rotate-lock__arrow" d="M8 26 A 26 26 0 0 1 26 8" />
+        <polyline class="rotate-lock__arrow" points="26,2 26,10 18,10" />
+      </svg>
+    </div>
+    <p class="rotate-lock__title" data-i18n="rotate.title">TURN YOUR PHONE</p>
+    <p class="rotate-lock__body" data-i18n="rotate.body">This broadcast is tuned for portrait.</p>
+  </div>
+</div>
+
+<script src="vendor/gsap-3.12.5.min.js"></script>
+<script src="vendor/lenis-1.3.26.min.js"></script>
+<script src="script.js?v=140"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+# ----------------------------------------------------------------------
+# 404 Error Document
+# ----------------------------------------------------------------------
+ErrorDocument 404 /404.html
+
+# ----------------------------------------------------------------------
+# Rewrite Rules
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Forzar HTTPS. Las dos condiciones deben cumplirse (AND implícito):
+  # no es HTTPS directo Y el proxy tampoco lo marca como https -> así no
+  # entra en loop detrás del proxy SSL de Hostinger/Cloudflare.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Redirigir www -> apex (un solo canónico)
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# MIME Types
+# ----------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType audio/mpeg .mp3
+  AddType audio/wav .wav
+  AddType font/woff2 .woff2
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Security Headers
+# ----------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # No permitir que el sitio se cargue dentro de un <iframe> ajeno
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # No dejar que el navegador "adivine" tipos MIME
+  Header always set X-Content-Type-Options "nosniff"
+  # Cuánta info de referrer se manda a otros sitios
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # Desactivar APIs del navegador que el sitio no usa
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+  # Forzar HTTPS durante 1 año. Subir a 2 años + "preload" cuando lleve
+  # semanas sin problemas de certificado.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  # Aislar el contexto de navegación (no rompe nada; CORP se omite a
+  # propósito: la og:image tiene que poder embeberse en Twitter/LinkedIn)
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+
+  # Content Security Policy
+  # - GSAP y Lenis son self-hosted (vendor/); no hay <script> inline propio.
+  # - Analytics: Cloudflare Web Analytics. Se mide en el proxy; si Cloudflare
+  #   inyecta su beacon, sale de static.cloudflareinsights.com y reporta a
+  #   cloudflareinsights.com (por eso están permitidos). No hay Google.
+  # - style-src permite inline (hay ~6 atributos style= en el HTML).
+  # - Fuentes self-hosted (assets/fonts/), así que font-src solo necesita 'self'.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://api.web3forms.com https://cloudflareinsights.com; form-action 'self' https://api.web3forms.com; frame-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests"
+
+  # No cachear el HTML (los assets sí, con hash de versión)
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Bloquear acceso a archivos sensibles
+# ----------------------------------------------------------------------
+<FilesMatch "(^\.|\.(bak|config|dist|inc|ini|log|sh|sql|swp)$)">
+  Require all denied
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# Brotli (mejor que gzip; si el módulo no está, se ignora)
+# ----------------------------------------------------------------------
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Gzip / Deflate Compression (fallback si no hay Brotli)
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Browser Caching
+# ----------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType video/mp4 "access plus 1 year"
+  ExpiresByType audio/mpeg "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>

@@ -1,0 +1,48 @@
+# Buscadores y asistentes en vivo: bienvenidos (así aparece en Google y
+# lo pueden citar ChatGPT/Perplexity/Claude cuando alguien busca un dev).
+User-agent: *
+Allow: /
+
+# Crawlers de ENTRENAMIENTO de IA: no. El trabajo de este portfolio no
+# es material de entrenamiento gratis. (Refuerzo del bloqueo hecho en
+# Cloudflare AI Crawl Control.)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: PerplexityBot-Train
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+Sitemap: https://callersignal.com/sitemap.xml

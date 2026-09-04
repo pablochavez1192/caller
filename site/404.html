@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#1a130d" />
+<meta name="robots" content="noindex, nofollow" />
+
+<title>No signal · caller</title>
+<meta name="description" content="Page not found — this channel doesn't exist." />
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=1">
+
+<link rel="stylesheet" href="styles.css?v=138" />
+<style>
+  /* ---- 404-only: the screen never plays a room, just a permanent
+     burst of channel-change static with an emergency-broadcast card
+     on top — the joke being that this "channel" (page) never existed
+     for the TV to tune into in the first place. ---- */
+  .tv-screen {
+    pointer-events: auto !important;
+  }
+  .error-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 210; /* above .tv-static (200) */
+    padding: 0 8%;
+    pointer-events: auto !important;
+  }
+  .error-screen__title {
+    font-family: 'Bevan', var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.2rem, 7vw, 4.5rem);
+    color: #0a0a0a;
+    -webkit-text-stroke: 3px #FDF6E7;
+    paint-order: stroke fill;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.95;
+    text-shadow: 4px 4px 0 rgba(253, 246, 231, 0.5);
+  }
+  .error-screen__code {
+    margin-top: 0.6rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(0.75rem, 2vw, 1rem);
+    letter-spacing: 0.16em;
+    color: #0a0a0a;
+    background: rgba(253, 246, 231, 0.85);
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+  }
+  .error-screen__sub {
+    margin-top: 0.9rem;
+    max-width: 34ch;
+    font-family: var(--font-mono);
+    font-size: clamp(0.68rem, 1.6vw, 0.85rem);
+    line-height: 1.6;
+    color: #0a0a0a;
+    background: rgba(253, 246, 231, 0.85);
+    padding: 0.5rem 0.9rem;
+    border-radius: 3px;
+  }
+  .error-screen__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(0.7rem, 1.6vw, 0.85rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--brass);
+    padding: 0.7rem 1.2rem;
+    border-radius: var(--radius);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    text-decoration: none;
+    position: relative;
+    z-index: 220;
+  }
+  .error-screen__back:hover { background: #D4A254; transform: translateY(-1px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tv-static { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tv-backdrop" aria-hidden="true"></div>
+
+<div class="tv-frame">
+  <div class="tv-controls" id="tv-controls">
+    <button class="tv-knob tv-knob--small" type="button" aria-label="Language" disabled>
+      <img class="tv-knob__base" src="assets/tv/lang1.webp" alt="" draggable="false" />
+      <img class="tv-knob__cap" src="assets/tv/lang2.webp" alt="" draggable="false" />
+    </button>
+    <button class="tv-knob" type="button" aria-label="Channel" disabled>
+      <img class="tv-knob__base" src="assets/tv/channel1.webp" alt="" draggable="false" />
+      <img class="tv-knob__cap" src="assets/tv/channel2.webp" alt="" draggable="false" />
+    </button>
+    <a class="tv-btn" href="/#projects" aria-label="Work">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/work1.webp" alt="" draggable="false" />
+    </a>
+    <a class="tv-btn" href="/#about" aria-label="About">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/about1.webp" alt="" draggable="false" />
+    </a>
+    <a class="tv-btn" href="/#contact" aria-label="Contact">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/contact1.webp" alt="" draggable="false" />
+    </a>
+    <a class="tv-btn" href="/" aria-label="Home">
+      <img class="tv-btn__img tv-btn__img--up" src="assets/tv/reset1.webp" alt="" draggable="false" />
+    </a>
+    <button class="tv-music" type="button" aria-label="Music" disabled>
+      <img class="tv-music__img" src="assets/tv/music.webp" alt="" draggable="false" />
+    </button>
+  </div>
+
+  <div class="tv-screen">
+    <canvas class="tv-static is-active" id="tv-static" aria-hidden="true"></canvas>
+
+    <div class="error-screen">
+      <h1 class="error-screen__title">No signal</h1>
+      <span class="error-screen__code">ERROR 404 — CHANNEL NOT FOUND</span>
+      <p class="error-screen__sub">This frequency doesn't exist. Whatever you were looking for isn't broadcasting here.</p>
+      <a class="error-screen__back" href="/">← Back to caller</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/404.js?v=1"></script>
+
+</body>
+</html>
